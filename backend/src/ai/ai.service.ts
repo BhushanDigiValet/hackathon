@@ -120,7 +120,9 @@ export class AiService {
     const startTime = Date.now();
     try {
       if (!prompt && !selections) {
-        console.warn('[ai] extractProfile failed: missing prompt and selections');
+        console.warn(
+          '[ai] extractProfile failed: missing prompt and selections',
+        );
         return null;
       }
 
@@ -128,7 +130,9 @@ export class AiService {
       const cacheKey = { prompt, selections: selections || {} };
       const cached = await this.demoCache.get<any>('extractProfile', cacheKey);
       if (cached) {
-        console.log(`[ai] extract ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`);
+        console.log(
+          `[ai] extract ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`,
+        );
         return cached;
       }
 
@@ -141,15 +145,18 @@ export class AiService {
       );
 
       // 3. Light shape check
+      if (!parsed) return null;
       if (
-        !parsed ||
         typeof parsed !== 'object' ||
         !parsed.mood ||
         !parsed.pace ||
         !parsed.travelMode ||
         typeof parsed.summary !== 'string'
       ) {
-        console.warn('[ai] extractProfile failed: invalid shape from LLM', parsed);
+        console.warn(
+          '[ai] extractProfile failed: invalid shape from LLM',
+          parsed,
+        );
         return null;
       }
 
@@ -170,7 +177,8 @@ export class AiService {
       // Constraints overrides and defaults
       parsed.constraints = parsed.constraints || {};
       if (sel.wakeAfter) parsed.constraints.wakeAfter = sel.wakeAfter;
-      if (sel.budgetTier) parsed.constraints.budgetTier = Number(sel.budgetTier);
+      if (sel.budgetTier)
+        parsed.constraints.budgetTier = Number(sel.budgetTier);
 
       const mode = (parsed.travelMode || 'solo').toLowerCase();
       if (!parsed.constraints.partySize) {
@@ -211,7 +219,8 @@ export class AiService {
       if (filteredTags.length < 3) {
         if (weights.wellness >= 0.6) filteredTags.push('wellness', 'spa');
         if (weights.food >= 0.6) filteredTags.push('fine_dining');
-        if (weights.nightlife >= 0.5) filteredTags.push('cocktails', 'nightlife');
+        if (weights.nightlife >= 0.5)
+          filteredTags.push('cocktails', 'nightlife');
         if (parsed.socialOptIn) filteredTags.push('social');
         filteredTags = Array.from(new Set(filteredTags)).filter((t) =>
           allowedSet.has(t),
@@ -322,7 +331,9 @@ export class AiService {
       };
       const cached = await this.demoCache.get<any>('composePlan', cacheKey);
       if (cached) {
-        console.log(`[ai] compose ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`);
+        console.log(
+          `[ai] compose ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`,
+        );
         return this.wrapComposeResult(cached.planSummary, cached.items);
       }
 
@@ -339,13 +350,16 @@ export class AiService {
       );
 
       // 6. Light shape check
+      if (!parsed) return null;
       if (
-        !parsed ||
         typeof parsed !== 'object' ||
         typeof parsed.planSummary !== 'string' ||
         !Array.isArray(parsed.items)
       ) {
-        console.warn('[ai] composePlan failed: invalid response shape from LLM', parsed);
+        console.warn(
+          '[ai] composePlan failed: invalid response shape from LLM',
+          parsed,
+        );
         return null;
       }
 
@@ -371,7 +385,9 @@ export class AiService {
         }
 
         // Validate upsellItemId against valid upgrades
-        let upsellItemId = it.upsellItemId ? Number(it.upsellItemId) : undefined;
+        let upsellItemId = it.upsellItemId
+          ? Number(it.upsellItemId)
+          : undefined;
         let upsellReason = it.upsellReason;
         if (upsellItemId) {
           const isValid = cat.upgrades.some((u) => u.id === upsellItemId);
@@ -411,7 +427,9 @@ export class AiService {
 
       // Rule: If fewer than 3 items remain, return null
       if (cleanItems.length < 3) {
-        console.warn('[ai] composePlan failed: fewer than 3 items after filtering');
+        console.warn(
+          '[ai] composePlan failed: fewer than 3 items after filtering',
+        );
         return null;
       }
 
@@ -501,12 +519,19 @@ export class AiService {
         profileMood: profile?.mood,
         lockedIds: lockedItems.map((l) => l.catalogueItemId).sort(),
       };
-      const cached = await this.demoCache.get<ReshapedPlanResult>(
+      let cached = await this.demoCache.get<ReshapedPlanResult>(
         'reshapePlan',
         cacheKey,
       );
+      if (!cached) {
+        cached = await this.demoCache.get<ReshapedPlanResult>('reshapePlan', {
+          message: message.trim(),
+        });
+      }
       if (cached) {
-        console.log(`[ai] reshape ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`);
+        console.log(
+          `[ai] reshape ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`,
+        );
         return cached;
       }
 
@@ -524,13 +549,16 @@ export class AiService {
       );
 
       // 6. Light shape check
+      if (!parsed) return null;
       if (
-        !parsed ||
         typeof parsed !== 'object' ||
         !Array.isArray(parsed.changes) ||
         !Array.isArray(parsed.items)
       ) {
-        console.warn('[ai] reshapePlan failed: invalid response shape from LLM', parsed);
+        console.warn(
+          '[ai] reshapePlan failed: invalid response shape from LLM',
+          parsed,
+        );
         return null;
       }
 
@@ -596,7 +624,9 @@ export class AiService {
 
       const result: ReshapedPlanResult = {
         understood: understoodText,
-        changes: parsed.changes.map((c: string) => String(c).replace(/!+/g, '.')),
+        changes: parsed.changes.map((c: string) =>
+          String(c).replace(/!+/g, '.'),
+        ),
         profilePatch: parsed.profilePatch || {},
         items: cleanItems,
       };
@@ -651,7 +681,9 @@ export class AiService {
         cacheKey,
       );
       if (cached) {
-        console.log(`[ai] memory ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`);
+        console.log(
+          `[ai] memory ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`,
+        );
         return cached;
       }
 
@@ -664,14 +696,17 @@ export class AiService {
       );
 
       // 4. Light shape check
+      if (!parsed) return null;
       if (
-        !parsed ||
         typeof parsed !== 'object' ||
         typeof parsed.title !== 'string' ||
         !Array.isArray(parsed.chapters) ||
         typeof parsed.closingLine !== 'string'
       ) {
-        console.warn('[ai] narrateMemory failed: invalid response shape from LLM', parsed);
+        console.warn(
+          '[ai] narrateMemory failed: invalid response shape from LLM',
+          parsed,
+        );
         return null;
       }
 
@@ -751,12 +786,17 @@ export class AiService {
     }
 
     const apiKey = this.configService.get<string>('ANTHROPIC_API_KEY');
-    if (!apiKey || apiKey === 'disabled' || apiKey === 'off' || !apiKey.trim()) {
+    if (
+      !apiKey ||
+      apiKey === 'disabled' ||
+      apiKey === 'off' ||
+      !apiKey.trim()
+    ) {
       return null;
     }
 
     const timeoutMs =
-      typeof options === 'number' ? options : options?.timeoutMs ?? 10000;
+      typeof options === 'number' ? options : (options?.timeoutMs ?? 10000);
     const maxTokens =
       typeof options === 'object' && options?.maxTokens !== undefined
         ? options.maxTokens
@@ -793,7 +833,9 @@ export class AiService {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
-        console.warn(`[ai] callLlm HTTP error ${response.status}: ${errorText}`);
+        console.warn(
+          `[ai] callLlm HTTP error ${response.status}: ${errorText}`,
+        );
         return null;
       }
 

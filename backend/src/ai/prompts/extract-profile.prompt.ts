@@ -39,7 +39,10 @@ Rules:
 Return JSON only, matching the schema exactly.
 `.trim();
 
-export function buildExtractProfilePrompt(prompt: string, selections: any): string {
+export function buildExtractProfilePrompt(
+  prompt: string,
+  selections: any,
+): string {
   const schema = {
     mood: 'relaxed | indulgent | adventurous | romantic | social | recharge',
     pace: 'slow | balanced | packed',
@@ -61,7 +64,8 @@ export function buildExtractProfilePrompt(prompt: string, selections: any): stri
       dietary: 'string[]',
       notes: 'string',
     },
-    summary: 'string (one sentence, second person, max 20 words, no exclamation marks)',
+    summary:
+      'string (one sentence, second person, max 20 words, no exclamation marks)',
   };
 
   return `

@@ -12,7 +12,14 @@ export class BookingsController {
   }
 
   @Post()
-  async createBooking(@Req() req: any, @Body() body: { planItemId: number; withUpsell: boolean }) {
-    return this.bookingsService.createBooking(guestId(req), body.planItemId, body.withUpsell);
+  async createBooking(
+    @Req() req: any,
+    @Body() body: { planItemId: number; withUpsell: boolean },
+  ) {
+    return this.bookingsService.createBooking(
+      guestId(req),
+      body.planItemId,
+      body.withUpsell,
+    );
   }
 }

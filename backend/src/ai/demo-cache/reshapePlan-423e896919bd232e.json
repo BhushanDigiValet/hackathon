@@ -1,0 +1,46 @@
+{
+  "understood": "You would like to inject more exhilaration and exploration into your stay.",
+  "changes": [
+    "Afternoon: Added Helicopter Sunset Tour for scenic desert exploration",
+    "Kept: Golden Hour Terrace Bar (confirmed)"
+  ],
+  "profilePatch": {
+    "weights": {
+      "exploration": 0.85,
+      "energy": 0.7
+    },
+    "tags": [
+      "spa",
+      "adventure",
+      "sunset",
+      "social",
+      "fine_dining"
+    ]
+  },
+  "items": [
+    {
+      "catalogueItemId": 12,
+      "startAt": "10:30",
+      "endAt": "12:00",
+      "why": "Begin with soothing spa therapy to center yourself for an active afternoon."
+    },
+    {
+      "catalogueItemId": 25,
+      "startAt": "15:30",
+      "endAt": "17:00",
+      "why": "Sweeping canyon and Strip aerial views bring the exhilarating adventure you requested."
+    },
+    {
+      "catalogueItemId": 4,
+      "startAt": "19:30",
+      "endAt": "21:30",
+      "why": "Refuel after your aerial excursion with an exquisite wood-fired steak dinner."
+    },
+    {
+      "catalogueItemId": 22,
+      "startAt": "22:00",
+      "endAt": "23:30",
+      "why": "Wrap up an eventful day of discovery in the company of live jazz."
+    }
+  ]
+}

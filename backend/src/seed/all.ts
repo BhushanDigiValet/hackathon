@@ -189,5 +189,7 @@ export async function seedAll(
   }
   await memoryReelRepo.save(memoryReels);
 
-  console.log('✅ Seed data successfully injected! At least 50 records in each table.');
+  console.log(
+    '✅ Seed data successfully injected! At least 50 records in each table.',
+  );
 }

@@ -27,7 +27,12 @@ backend/src/ai/
     └── narrate-memory.prompt.ts    # 10s, 1200 tokens, temp 0.8
 ```
 
----
+---curl -X POST http://localhost:3000/api/plan/reshape \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Actually I want tonight to be more social."
+  }'
+
 
 ## ⚡ Quick Test Command
 
