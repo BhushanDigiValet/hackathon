@@ -787,7 +787,8 @@ export class AiService {
       });
 
       if (!response.ok) {
-        console.warn(`[ai] callLlm HTTP error ${response.status}`);
+        const errorText = await response.text().catch(() => '');
+        console.warn(`[ai] callLlm HTTP error ${response.status}: ${errorText}`);
         return null;
       }
 
