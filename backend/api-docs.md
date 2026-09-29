@@ -15,6 +15,20 @@ Include the following header in your requests to identify the guest (defaults to
 - **GET** `/guests`
 - **Description:** Retrieve a list of all registered guests. Useful for building a "Login" or "Switch User" dropdown.
 
+### Login by Email
+- **POST** `/guests/login`
+- **Headers:** `Content-Type: application/json`
+- **Body:**
+  ```json
+  { "email": "guest5@example.com" }
+  ```
+- **Response `200`:**
+  ```json
+  { "guestId": 5, "name": "Guest 5", "email": "guest5@example.com" }
+  ```
+- **Errors:** `400` if `email` is missing, `404` if no guest has that email.
+- **Description:** Hackathon login. Resolves a guest by email (case-insensitive, trimmed). The client stores `guestId` and sends it as `x-guest-id` on later requests.
+
 ### Get Guest by ID
 - **GET** `/guests/:id`
 - **Description:** Retrieve details of a specific guest.

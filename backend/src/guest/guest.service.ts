@@ -18,6 +18,10 @@ export class GuestService {
     return this.guestRepo.findOne({ where: { id } });
   }
 
+  async findByEmail(email: string) {
+    return this.guestRepo.findOne({ where: { email } });
+  }
+
   async create(data: Partial<Guest>) {
     const guest = this.guestRepo.create(data);
     return this.guestRepo.save(guest);
