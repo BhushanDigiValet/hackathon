@@ -1,0 +1,32 @@
+{
+  "understood": "You prefer to sleep in later, so we moved your morning activities to start after ten.",
+  "changes": [
+    "Morning: Moved Serenity Stone Massage to 10:30 so you wake naturally without rush",
+    "Kept: Golden Hour Terrace Bar (confirmed)"
+  ],
+  "profilePatch": {
+    "constraints": {
+      "wakeAfter": "10:00"
+    }
+  },
+  "items": [
+    {
+      "catalogueItemId": 12,
+      "startAt": "10:30",
+      "endAt": "12:00",
+      "why": "Scheduled comfortably after ten in the morning so you wake naturally without an alarm."
+    },
+    {
+      "catalogueItemId": 4,
+      "startAt": "19:30",
+      "endAt": "21:30",
+      "why": "Evening dinner remains gracefully set following your sunset drinks."
+    },
+    {
+      "catalogueItemId": 22,
+      "startAt": "22:00",
+      "endAt": "23:30",
+      "why": "Late night jazz concludes your leisurely day with gentle, melodic charm."
+    }
+  ]
+}

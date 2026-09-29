@@ -29,7 +29,8 @@ export function buildComposePlanPrompt(
   lockedItemsCompact: any[],
 ): string {
   const schema = {
-    planSummary: 'one or two sentences in second person explaining the shape of the day',
+    planSummary:
+      'one or two sentences in second person explaining the shape of the day',
     items: [
       {
         catalogueItemId: 'number (must match an id from the catalogue)',

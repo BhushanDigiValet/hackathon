@@ -17,7 +17,10 @@ Rules:
 Return JSON only.
 `.trim();
 
-export function buildNarrateMemoryPrompt(timeline: any[], profile: any): string {
+export function buildNarrateMemoryPrompt(
+  timeline: any[],
+  profile: any,
+): string {
   const schema = {
     title: 'max 6 words, evocative keepsake title',
     chapters: [
