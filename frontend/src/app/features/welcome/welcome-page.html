@@ -1,0 +1,279 @@
+@if (loadState() === 'loading') {
+  <div class="mx-auto max-w-[430px] min-h-dvh flex flex-col items-center justify-center gap-3 bg-surface text-secondary">
+    <span class="material-symbols-outlined animate-spin text-primary text-[28px]">progress_activity</span>
+    <span class="font-label-lg text-label-lg">Preparing your preferences...</span>
+  </div>
+} @else if (loadState() === 'error') {
+  <div class="mx-auto max-w-[430px] min-h-dvh flex flex-col items-center justify-center gap-3 px-margin-mobile text-center bg-surface">
+    <span class="material-symbols-outlined text-error text-[32px]">cloud_off</span>
+    <h1 class="font-headline-sm text-headline-sm text-on-surface">We couldn’t reach your concierge</h1>
+    <p class="font-body-md text-body-md text-secondary">Please check your connection and try again.</p>
+    <button
+      type="button"
+      class="mt-2 px-4 py-2 rounded-lg border border-primary/35 text-on-surface font-label-lg text-label-lg hover:border-primary hover:bg-primary/5 transition-colors"
+      (click)="load()"
+    >
+      Try again
+    </button>
+  </div>
+} @else if (options(); as opts) {
+  <div class="mx-auto max-w-[430px] min-h-dvh flex flex-col pt-safe pb-safe bg-surface text-on-surface">
+    <!-- Hero -->
+    <section
+      class="relative overflow-hidden px-margin-mobile pt-4 pb-8 rounded-b-xl bg-gradient-to-b from-surface-container-lowest via-surface to-surface-container-low shadow-xl"
+    >
+      <div class="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+      <div class="absolute top-24 -left-10 w-48 h-48 rounded-full bg-secondary-container/20 blur-2xl pointer-events-none"></div>
+      <div class="relative z-10 flex flex-col gap-6">
+        <div class="flex items-center justify-between">
+          <span class="font-label-sm text-label-sm tracking-widest uppercase text-primary">{{ guest()?.concierge }}</span>
+          <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-highest/60 text-secondary backdrop-blur-md">
+              <span class="material-symbols-outlined text-[14px]">lock</span>
+              <span class="font-label-sm text-label-sm">{{ guest()?.tier }}</span>
+            </div>
+            <button
+              type="button"
+              aria-label="Sign out"
+              title="Sign out"
+              class="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:text-primary hover:bg-surface-container-highest/60 transition-colors"
+              (click)="signOut()"
+            >
+              <span class="material-symbols-outlined text-[18px]">logout</span>
+            </button>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <h1 class="font-display-md-mobile text-display-md-mobile text-on-surface">How do you want your stay to feel?</h1>
+          <p class="font-body-md text-body-md text-secondary max-w-xs">
+            Tell us what matters to you. We’ll shape the moments around it.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="px-margin-mobile pt-6 pb-6 flex flex-col gap-6">
+      <!-- Mood -->
+      <div class="flex flex-col gap-3">
+        <span class="font-title-md text-title-md text-on-surface">Atmosphere &amp; mood</span>
+        <div class="flex flex-wrap gap-2">
+          @for (mood of opts.moods; track mood.id) {
+            @let selected = selectedMoods().has(mood.id);
+            <button
+              type="button"
+              class="px-4 py-2 rounded-full font-label-lg text-label-lg transition-all"
+              [class]="selected ? 'bg-primary-container/20 text-primary shadow-sm' : 'bg-surface-container text-secondary hover:text-on-surface'"
+              [attr.aria-pressed]="selected"
+              (click)="toggleMood(mood.id)"
+            >
+              {{ mood.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Pace -->
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <span class="font-title-md text-title-md text-on-surface">Itinerary cadence</span>
+          <span class="font-label-sm text-label-sm text-primary">{{ paceDescription() }}</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 bg-surface-container-low p-1.5 rounded-lg" role="radiogroup">
+          @for (pace of opts.paces; track pace.id) {
+            @let active = paceId() === pace.id;
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="active"
+              class="py-2.5 px-3 rounded text-center font-label-lg text-label-lg transition-all"
+              [class]="active ? 'bg-surface-container-highest text-primary shadow-sm font-semibold' : 'text-secondary'"
+              (click)="paceId.set(pace.id)"
+            >
+              {{ pace.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Travel company -->
+      <div class="flex flex-col gap-3">
+        <span class="font-title-md text-title-md text-on-surface">Travel company</span>
+        <div class="grid grid-cols-2 gap-2" role="radiogroup">
+          @for (company of opts.travelCompanies; track company.id) {
+            @let active = travelCompanyId() === company.id;
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="active"
+              class="p-3 rounded-lg text-left flex items-center justify-between transition-all"
+              [class]="active ? 'bg-surface-container-high text-on-surface shadow-sm' : 'bg-surface-container'"
+              (click)="travelCompanyId.set(company.id)"
+            >
+              <span class="font-body-md text-body-md" [class]="active ? 'text-primary font-medium' : 'text-secondary'">
+                {{ company.label }}
+              </span>
+              <span
+                class="material-symbols-outlined text-[18px]"
+                [class]="active ? 'text-primary icon-fill' : 'text-secondary'"
+              >{{ company.icon }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Guest circles -->
+      <div class="p-4 rounded-lg bg-surface-container flex items-center justify-between shadow-sm">
+        <div class="flex flex-col gap-1 pr-3">
+          <div class="flex items-center gap-1.5">
+            <span class="font-title-md text-title-md text-on-surface">Open to guest circles</span>
+            <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary font-label-sm text-[10px]">Verified</span>
+          </div>
+          <p class="font-body-md text-body-md text-secondary">
+            Share select evening salon or tasting bookings with like-minded guests.
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-label="Open to guest circles"
+          [attr.aria-checked]="openToGuestCircles()"
+          class="relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors duration-300 ease-in-out focus:outline-none"
+          [class]="openToGuestCircles() ? 'bg-primary' : 'bg-surface-container-highest'"
+          (click)="openToGuestCircles.set(!openToGuestCircles())"
+        >
+          <span
+            class="inline-block h-5 w-5 mt-1 rounded-full transform transition duration-300 ease-in-out"
+            [class]="openToGuestCircles() ? 'translate-x-6 bg-surface-container-lowest' : 'translate-x-1 bg-secondary'"
+          ></span>
+        </button>
+      </div>
+
+      <!-- Refined preferences -->
+      <details class="group rounded-lg bg-surface-container-low transition-all" open>
+        <summary class="flex cursor-pointer items-center justify-between p-4 list-none [&::-webkit-details-marker]:hidden">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[20px]">tune</span>
+            <span class="font-title-md text-title-md text-on-surface">Refined preferences</span>
+          </div>
+          <span class="material-symbols-outlined text-secondary transition-transform duration-300 group-open:rotate-180">expand_more</span>
+        </summary>
+        <div class="px-4 pb-4 pt-1 flex flex-col gap-3">
+          @for (pref of refinedPreferences(); track pref.id) {
+            <div class="flex items-center justify-between py-2 gap-3">
+              <div class="flex flex-col">
+                <span class="font-body-md text-body-md text-on-surface">{{ pref.label }}</span>
+                <span class="font-label-sm text-label-sm text-secondary">{{ pref.hint }}</span>
+              </div>
+              <span class="shrink-0 px-3 py-1 rounded bg-surface-container font-label-lg text-label-lg text-primary">{{ pref.value }}</span>
+            </div>
+          }
+        </div>
+      </details>
+
+      <!-- Intention -->
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <label class="font-title-lg text-title-lg text-on-surface flex items-center gap-2" for="prompt-input">
+            <span class="material-symbols-outlined text-primary text-[18px]">auto_awesome</span> Your intention
+          </label>
+          <button
+            type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-primary font-label-sm text-label-sm transition-colors duration-200"
+            (click)="useDemoPrompt()"
+          >
+            <span class="material-symbols-outlined text-[14px]">diamond</span>
+            <span>Use demo prompt</span>
+          </button>
+        </div>
+        <div class="relative rounded-lg bg-surface-container-low shadow-inner focus-within:bg-surface-container transition-all">
+          <textarea
+            id="prompt-input"
+            rows="4"
+            class="w-full bg-transparent p-4 text-on-surface font-body-md text-body-md placeholder:text-outline focus:outline-none resize-none"
+            [placeholder]="opts.demoPrompt"
+            [value]="intention()"
+            (input)="intention.set($any($event.target).value)"
+          ></textarea>
+          <div class="flex items-center justify-between px-4 pb-3">
+            <span class="font-label-sm text-label-sm text-secondary flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">mic</span> Voice dictation ready
+            </span>
+            <span class="font-label-sm text-label-sm text-secondary-fixed-dim">{{ opts.modelLabel }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Synthesis (only while composing) + CTA -->
+    <section class="px-margin-mobile pb-12 flex flex-col gap-5">
+      @if (createState() === 'loading') {
+      <div
+        class="p-4 rounded-xl bg-gradient-to-br from-surface-container to-surface-container-high shadow-lg flex flex-col gap-4"
+        role="status"
+        aria-live="polite"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[20px] animate-spin [animation-duration:8s]">sync</span>
+            <span class="font-label-lg text-label-lg text-primary uppercase tracking-wider">AI orchestration synthesis</span>
+          </div>
+          <span class="font-label-sm text-label-sm text-secondary">Real-time</span>
+        </div>
+        <div class="flex flex-col gap-2.5">
+          @for (step of synthesisSteps(); track step.label) {
+            <div class="flex items-center gap-2.5">
+              <span
+                class="w-2 h-2 rounded-full"
+                [class]="step.state === 'done' ? 'bg-primary' : step.state === 'active' ? 'bg-primary/40' : 'bg-surface-container-highest'"
+              ></span>
+              <span
+                class="font-body-md text-body-md"
+                [class]="step.state === 'done' ? 'text-on-surface' : step.state === 'active' ? 'text-secondary' : 'text-secondary-fixed-dim'"
+              >{{ step.label }}</span>
+            </div>
+          }
+        </div>
+        <div class="p-3.5 rounded-lg bg-surface-container-lowest/80 backdrop-blur-sm flex items-start gap-3">
+          <span class="material-symbols-outlined text-primary text-[22px] shrink-0 mt-0.5">diamond</span>
+          <div class="flex flex-col gap-1">
+            <span class="font-title-md text-title-md text-on-surface">Your stay is taking shape</span>
+            <p class="font-body-md text-body-md text-secondary">{{ summaryDescription() }}</p>
+          </div>
+        </div>
+      </div>
+      }
+
+      <div class="flex flex-col gap-3 pt-2">
+        <button
+          type="button"
+          class="w-full py-4 px-6 rounded-lg bg-primary hover:bg-primary-fixed text-on-primary font-title-lg text-title-lg text-center transition-all duration-300 shadow-xl flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-80"
+          [disabled]="createState() === 'loading'"
+          (click)="createStay()"
+        >
+          @switch (createState()) {
+            @case ('loading') {
+              <span class="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+              <span>Composing bespoke itinerary...</span>
+            }
+            @case ('ready') {
+              <span class="material-symbols-outlined text-[20px]">check_circle</span>
+              <span>Itinerary personal invitation ready</span>
+            }
+            @default {
+              <span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+              <span>Compose my stay</span>
+            }
+          }
+        </button>
+        @if (createError()) {
+          <p class="text-center font-label-sm text-label-sm text-error" role="alert">
+            We couldn’t compose your stay. Please try again.
+          </p>
+        }
+        <p class="text-center font-label-sm text-label-sm text-secondary">
+          Single day curated resort itinerary finalized upon review · Discretion assured
+        </p>
+      </div>
+    </section>
+  </div>
+}

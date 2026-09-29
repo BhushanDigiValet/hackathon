@@ -1,0 +1,94 @@
+<header
+  class="fixed top-0 inset-x-0 z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_4px_24px_rgba(14,5,8,0.4)]"
+>
+  <div class="mx-auto max-w-[430px] h-16 px-margin-mobile flex items-center justify-between gap-space-sm">
+    <div class="flex items-center gap-space-sm">
+      <img alt="Stay" class="h-8 w-auto object-contain" [src]="logoUrl" />
+      <div class="flex flex-col">
+        <div class="flex items-center gap-space-xs">
+          <span class="font-headline-sm text-title-md text-on-surface tracking-tight">Stay</span>
+          <span class="w-1 h-1 rounded-full bg-primary/40"></span>
+          <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Private Salon</span>
+        </div>
+        <span class="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[140px]">{{ section() }}</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-space-sm">
+      <button
+        type="button"
+        aria-label="Notifications"
+        class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors"
+      >
+        <span class="material-symbols-outlined text-[20px]">notifications</span>
+      </button>
+      <div class="relative" #accountMenu>
+        <button
+          type="button"
+          aria-label="Account"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="menuOpen()"
+          class="w-8 h-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary-fixed transition-colors"
+          (click)="menuOpen.set(!menuOpen())"
+        >
+          <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+        </button>
+        @if (menuOpen()) {
+          <div
+            role="menu"
+            class="absolute right-0 top-10 z-50 w-56 p-2 rounded-xl bg-surface-container-highest shadow-[0_16px_36px_-8px_rgba(10,3,6,0.65)] border border-primary/15"
+          >
+            @if (session(); as s) {
+              <div class="px-3 py-2">
+                <p class="font-title-md text-title-md text-on-surface truncate">{{ s.name }}</p>
+                <p class="font-label-sm text-label-sm text-on-surface-variant truncate">{{ s.email }}</p>
+              </div>
+            }
+            <button
+              type="button"
+              role="menuitem"
+              class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-on-surface font-label-lg text-label-lg hover:bg-surface-container-high transition-colors"
+              (click)="signOut()"
+            >
+              <span class="material-symbols-outlined text-[18px] text-primary">logout</span>
+              Sign out
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="relative mx-auto w-full max-w-[430px] min-h-dvh pt-16 pb-24 bg-surface text-on-surface flex flex-col">
+  <router-outlet />
+</main>
+
+<nav
+  class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_-8px_32px_rgba(14,5,8,0.7)]"
+>
+  <div class="mx-auto max-w-[430px] h-16 px-gutter-mobile flex items-stretch justify-around">
+    @for (item of navItems; track item.label) {
+      @if (item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="!text-primary"
+          ariaCurrentWhenActive="page"
+          class="flex-1 flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors min-h-[44px]"
+        >
+          <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+          <span class="font-label-sm text-label-sm tracking-wide">{{ item.label }}</span>
+        </a>
+      } @else {
+        <button
+          type="button"
+          disabled
+          title="Coming soon"
+          class="flex-1 flex flex-col items-center justify-center gap-0.5 text-on-surface-variant/60 min-h-[44px] cursor-not-allowed"
+        >
+          <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+          <span class="font-label-sm text-label-sm tracking-wide">{{ item.label }}</span>
+        </button>
+      }
+    }
+  </div>
+</nav>

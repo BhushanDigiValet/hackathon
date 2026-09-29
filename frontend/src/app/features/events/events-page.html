@@ -1,0 +1,156 @@
+<div class="flex flex-col w-full px-margin-mobile pb-space-lg select-none">
+  <!-- Context & privilege header -->
+  <div class="flex flex-col gap-space-xs mt-space-sm mb-space-md">
+    <div class="flex items-center justify-between gap-2">
+      <div class="inline-flex items-center gap-space-xs bg-surface-container-high px-3 py-1 rounded-full min-w-0">
+        <span class="w-1.5 h-1.5 shrink-0 rounded-full bg-primary animate-pulse"></span>
+        <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest truncate">
+          Live Property Circles · {{ guest()?.suite }} Privilege
+        </span>
+      </div>
+      <div class="flex shrink-0 items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full">
+        <span class="material-symbols-outlined icon-fill text-[14px] text-primary">radar</span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">{{ remaining() }} near you</span>
+      </div>
+    </div>
+    <div class="flex flex-col mt-space-xs">
+      <h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Guest &amp; Host Invitations</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+        Discreet gatherings curated by fellow patrons tonight. Tap to review salon company and accept your place.
+      </p>
+    </div>
+  </div>
+
+  <!-- Card stack -->
+  <div class="relative w-full aspect-[3/4.4] min-h-[500px] flex items-center justify-center mb-space-md">
+    @if (afterNext(); as card) {
+      <div
+        class="absolute inset-x-5 top-5 bottom-0 rounded-2xl bg-surface-container-lowest overflow-hidden shadow-2xl scale-[0.91] translate-y-4 opacity-40 transition-all duration-300"
+      >
+        <img alt="" class="w-full h-full object-cover brightness-50" [src]="card.imageUrl" />
+        <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/70 to-transparent"></div>
+      </div>
+    }
+
+    @if (next(); as card) {
+      <div
+        class="absolute inset-x-2.5 top-2.5 bottom-0 rounded-2xl bg-surface-container-low overflow-hidden shadow-2xl scale-[0.96] translate-y-2 opacity-80 transition-all duration-300"
+      >
+        <img alt="" class="w-full h-full object-cover brightness-70" [src]="card.imageUrl" />
+        <div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/50 to-transparent"></div>
+        <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+          <span class="px-2.5 py-1 rounded-full bg-surface-container-highest/90 text-secondary font-label-sm text-label-sm backdrop-blur-md truncate">
+            {{ card.startsAtLabel }} · {{ card.venue }}
+          </span>
+          <span class="w-2 h-2 shrink-0 rounded-full bg-primary/40"></span>
+        </div>
+      </div>
+    }
+
+    @if (active(); as card) {
+      <div
+        tabindex="0"
+        role="group"
+        [attr.aria-label]="card.title + '. Press left arrow to join, right arrow to pass.'"
+        class="absolute inset-0 rounded-2xl bg-surface-container overflow-hidden shadow-[0_24px_48px_rgba(14,5,8,0.9)] flex flex-col justify-between touch-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        [class.cursor-grab]="!dragging()"
+        [class.cursor-grabbing]="dragging()"
+        [style.transform]="cardTransform()"
+        [style.opacity]="exiting() ? 0 : 1"
+        [style.transition]="dragging() ? 'none' : 'transform 300ms ease, opacity 300ms ease'"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp()"
+        (pointercancel)="onPointerUp()"
+        (keydown)="onKeydown($event)"
+      >
+        <!-- Ambient image background -->
+        <div class="absolute inset-0 z-0">
+          <img alt="" draggable="false" class="w-full h-full object-cover" [src]="card.imageUrl" />
+          <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface-container-highest/75 via-45% to-surface/40"></div>
+          <div class="absolute inset-0 bg-radial from-transparent via-surface-container-lowest/30 to-surface-container-lowest/90"></div>
+        </div>
+
+        @if (dragHint(); as hint) {
+          <div
+            class="absolute top-24 z-20 px-4 py-1.5 rounded-full border font-label-lg text-label-lg uppercase tracking-widest backdrop-blur-md"
+            [class]="hint.right ? 'right-5 border-primary text-primary bg-primary/10' : 'left-5 border-secondary text-secondary bg-secondary-container/30'"
+            [style.opacity]="hint.opacity"
+          >
+            {{ hint.label }}
+          </div>
+        }
+
+        <!-- Top meta -->
+        <div class="relative z-10 p-4 flex flex-col gap-2">
+          <div class="flex items-center justify-between gap-2">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest/80 backdrop-blur-md text-primary font-label-sm text-label-sm shadow-sm">
+              <span class="material-symbols-outlined icon-fill text-[15px]">schedule</span>
+              <span>{{ card.startsAtLabel }}</span>
+            </div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high/90 backdrop-blur-md text-on-surface font-label-sm text-label-sm shadow-sm">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+              <span>{{ card.spotsRemaining }} spots remaining</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 self-start px-2.5 py-0.5 rounded-full bg-surface/70 backdrop-blur-sm">
+            <span class="material-symbols-outlined icon-fill text-[13px] text-primary">verified</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">{{ card.verifiedLabel }}</span>
+          </div>
+        </div>
+
+        <!-- Bottom content -->
+        <div class="relative z-10 p-5 flex flex-col gap-3 bg-gradient-to-t from-surface via-surface/95 to-transparent pt-8">
+          <div class="flex items-center gap-1.5 text-primary">
+            <span class="material-symbols-outlined text-[16px]">location_on</span>
+            <span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold">{{ card.venue }}</span>
+          </div>
+          <h2 class="font-headline-sm text-headline-sm text-on-surface leading-snug">{{ card.title }}</h2>
+          <div class="p-3 rounded-lg bg-surface-container-low/90 backdrop-blur-md shadow-inner flex flex-col gap-1">
+            <p class="font-body-md text-body-md text-on-surface italic leading-relaxed">“{{ card.hostNote }}”</p>
+            <div class="flex items-center justify-between pt-1 mt-1">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-[11px] font-bold">
+                  {{ card.host.initials }}
+                </div>
+                <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">
+                  {{ card.host.names }} <span class="text-outline">• {{ card.host.suite }}</span>
+                </span>
+              </div>
+              <span class="font-label-sm text-label-sm text-primary">{{ card.host.role }}</span>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-0.5">
+            @for (tag of card.tags; track tag.label) {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+                <span class="material-symbols-outlined text-[13px] text-primary">{{ tag.icon }}</span>
+                {{ tag.label }}
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="absolute inset-0 rounded-2xl bg-surface-container-low flex flex-col items-center justify-center gap-3 p-8 text-center">
+        <span class="material-symbols-outlined text-primary text-[36px]">nights_stay</span>
+        <h2 class="font-headline-sm text-headline-sm text-on-surface">You’re all caught up</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant">
+          New salons appear as fellow patrons open their doors. Your concierge will let you know.
+        </p>
+        <button
+          type="button"
+          class="mt-2 px-4 py-2 rounded-lg border border-primary/35 text-on-surface font-label-lg text-label-lg hover:border-primary hover:bg-primary/5 transition-colors"
+          (click)="restart()"
+        >
+          Review invitations again
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (active(); as card) {
+    <p class="font-label-sm text-label-sm text-on-surface-variant/80 text-center tracking-wide">
+      Swipe Right&nbsp; to pass • Swipe Left to confirm attendance with {{ card.host.suite }}
+    </p>
+  }
+</div>
