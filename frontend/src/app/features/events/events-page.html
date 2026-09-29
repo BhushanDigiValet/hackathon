@@ -289,6 +289,84 @@
   </div>
 }
 
+<!-- Nudge sheet: join the top card with a note for its host -->
+@if (nudgeOpen()) {
+  <div class="fixed inset-0 z-[60] flex items-end justify-center bg-surface/70 backdrop-blur-sm" (click)="closeNudge()">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="nudge-sheet-title"
+      class="w-full max-w-[430px] rounded-t-[24px] bg-surface-container-low p-5 pb-[max(2rem,env(safe-area-inset-bottom))] flex flex-col gap-4 shadow-[0_-16px_36px_-8px_rgba(10,3,6,0.65)]"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mx-auto w-9 h-1 rounded-full bg-secondary/20"></div>
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex flex-col gap-0.5">
+          <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Nudge the host</span>
+          <h2 id="nudge-sheet-title" class="font-headline-sm text-headline-sm text-on-surface">
+            {{ active()?.title ?? 'No invitation to nudge' }}
+          </h2>
+        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          class="w-9 h-9 shrink-0 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-on-surface"
+          (click)="closeNudge()"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      @if (active(); as card) {
+        <div class="flex items-center gap-3 p-3 rounded-lg bg-surface-container">
+          @if (card.host.imageUrl && !brokenAvatars().has(card.itineraryId)) {
+            <img alt="" class="w-9 h-9 shrink-0 rounded-full object-cover" [src]="card.host.imageUrl" />
+          } @else {
+            <span class="w-9 h-9 shrink-0 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-[12px] font-bold">
+              {{ card.host.initials }}
+            </span>
+          }
+          <div class="flex flex-col min-w-0">
+            <span class="font-label-lg text-label-lg text-on-surface truncate">{{ card.host.name }} · {{ card.host.suiteLabel }}</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant truncate">{{ card.whenLabel }} · {{ card.location }}</span>
+          </div>
+        </div>
+
+        <label class="flex flex-col gap-2" for="nudge-message">
+          <span class="font-title-md text-title-md text-on-surface">Your note</span>
+          <textarea
+            id="nudge-message"
+            rows="3"
+            class="w-full p-3 rounded-lg bg-surface-container-high text-on-surface font-body-md text-body-md placeholder:text-outline border border-on-surface/10 focus:outline-none focus:border-primary-container focus:shadow-[0_0_0_2px_rgba(201,164,92,0.15)] resize-none transition-colors"
+            placeholder="Count me in, bringing a bottle of Barolo!"
+            [attr.maxlength]="nudgeMax"
+            [value]="nudgeDraft()"
+            (input)="nudgeDraft.set($any($event.target).value)"
+          ></textarea>
+          <span class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+            <span>Optional. Without a note, the host gets a short default message.</span>
+            <span class="shrink-0 pl-2">{{ nudgeDraft().length }}/{{ nudgeMax }}</span>
+          </span>
+        </label>
+
+        <button
+          type="button"
+          class="w-full py-3.5 px-6 rounded-lg bg-primary hover:bg-primary-fixed text-on-primary font-title-md text-title-md flex items-center justify-center gap-2 shadow-xl transition-colors active:scale-[0.99] disabled:opacity-60"
+          [disabled]="exiting() || joining()"
+          (click)="sendNudge()"
+        >
+          <span class="material-symbols-outlined text-[20px]">waving_hand</span>
+          Join &amp; send nudge
+        </button>
+      } @else {
+        <p class="font-body-md text-body-md text-on-surface-variant">
+          {{ loadState() === 'loading' ? 'Finding an invitation…' : 'There are no invitations to join right now, so there is no host to nudge.' }}
+        </p>
+      }
+    </div>
+  </div>
+}
+
 @if (celebration(); as c) {
   <app-join-celebration [title]="c.title" [suiteLabel]="c.suiteLabel" [whenLabel]="c.whenLabel" />
 }

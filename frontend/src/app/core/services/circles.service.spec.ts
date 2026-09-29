@@ -105,6 +105,21 @@ describe('CirclesService', () => {
     req.flush({});
   });
 
+  it('sends a trimmed nudge message with joins only', () => {
+    service.swipe(7, 'join', '  Count me in!  ').subscribe();
+    expect(controller.expectOne('/api/circles/swipe').request.body).toEqual({
+      itineraryId: 7,
+      action: 'join',
+      message: 'Count me in!',
+    });
+
+    service.swipe(7, 'join', '   ').subscribe();
+    expect(controller.expectOne('/api/circles/swipe').request.body).toEqual({ itineraryId: 7, action: 'join' });
+
+    service.swipe(7, 'pass', 'ignored').subscribe();
+    expect(controller.expectOne('/api/circles/swipe').request.body).toEqual({ itineraryId: 7, action: 'pass' });
+  });
+
   it('resets swipes with DELETE', () => {
     service.resetSwipes().subscribe();
     expect(controller.expectOne('/api/circles/swipes').request.method).toBe('DELETE');

@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 
 import { circleDto } from '../../core/services/circles.service.spec';
+import { NudgeComposerService } from '../../core/services/nudge-composer.service';
 import { EventsPage } from './events-page';
 import { CELEBRATION_MS } from './join-celebration/join-celebration';
 
@@ -84,6 +85,43 @@ describe('EventsPage', () => {
     expect(el.textContent).toContain('We couldn’t confirm your place');
     expect(nearYou()).toBe('4');
     expect(buttons().join.disabled).toBe(false);
+  });
+
+  it('joins with a note from the Nudge tab', async () => {
+    TestBed.inject(NudgeComposerService).request();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(el.textContent).toContain('Nudge the host');
+
+    const textarea = el.querySelector<HTMLTextAreaElement>('#nudge-message')!;
+    textarea.value = 'Count me in, bringing a bottle of Barolo!';
+    textarea.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    [...el.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent!.includes('Join & send nudge'))!.click();
+
+    const swipe = controller.expectOne('/api/circles/swipe');
+    expect(swipe.request.body).toEqual({
+      itineraryId: 1,
+      action: 'join',
+      message: 'Count me in, bringing a bottle of Barolo!',
+    });
+    fixture.detectChanges();
+    expect(el.textContent).not.toContain('Nudge the host');
+
+    swipe.flush({});
+    await settle();
+    vi.advanceTimersByTime(CELEBRATION_MS);
+    expect(navigate).toHaveBeenCalledWith(['/itinerary']);
+  });
+
+  it('does not bring back a gathering that filled up (409)', async () => {
+    buttons().join.click();
+    controller.expectOne('/api/circles/swipe').flush(null, { status: 409, statusText: 'Conflict' });
+    await settle();
+    await settle();
+    expect(el.textContent).toContain('That gathering just filled up');
+    expect(nearYou()).toBe('3');
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('passes with the left arrow key and acknowledges it quietly', async () => {

@@ -1,3 +1,4 @@
+@if (showHeader()) {
 <header
   class="fixed top-0 inset-x-0 z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_4px_24px_rgba(14,5,8,0.4)]"
 >
@@ -10,13 +11,89 @@
       </div>
     </div>
     <div class="flex items-center gap-space-sm">
-      <button
-        type="button"
-        aria-label="Notifications"
-        class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors"
-      >
-        <span class="material-symbols-outlined text-[20px]">notifications</span>
-      </button>
+      <div class="relative" #bellMenu>
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="bellOpen()"
+          [attr.aria-label]="unreadCount() ? 'Notifications, ' + unreadCount() + ' unread' : 'Notifications'"
+          class="relative w-11 h-11 flex items-center justify-center rounded-full hover:text-primary transition-colors"
+          [class]="bellOpen() ? 'text-primary' : 'text-on-surface-variant'"
+          (click)="toggleBell()"
+        >
+          <span class="material-symbols-outlined text-[20px]" [class.icon-fill]="unreadCount() > 0">notifications</span>
+          @if (unreadCount() > 0) {
+            <span
+              class="badge absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-on-primary text-[10px] font-bold leading-[18px] text-center shadow-[0_0_0_2px_var(--color-surface)]"
+            >{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+          }
+        </button>
+
+        @if (bellOpen()) {
+          <div
+            role="dialog"
+            aria-label="Nudges"
+            class="absolute -right-12 top-12 z-50 w-[min(340px,calc(100vw-2rem))] rounded-xl bg-surface-container-highest shadow-[0_16px_36px_-8px_rgba(10,3,6,0.65)] border border-primary/15 overflow-hidden"
+          >
+            <div class="flex items-center justify-between gap-2 px-4 py-3 border-b border-on-surface/5">
+              <div class="flex flex-col">
+                <span class="font-title-md text-title-md text-on-surface">Nudges</span>
+                <span class="font-label-sm text-label-sm text-on-surface-variant">From guests joining your gatherings</span>
+              </div>
+              @if (unreadCount() > 0) {
+                <button
+                  type="button"
+                  class="shrink-0 font-label-lg text-label-lg text-primary hover:underline underline-offset-4"
+                  (click)="markAllRead()"
+                >
+                  Mark all read
+                </button>
+              }
+            </div>
+
+            <ul class="max-h-[60vh] overflow-y-auto">
+              @for (nudge of nudges(); track nudge.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-container-high"
+                    [class]="nudge.isRead ? '' : 'bg-primary/5'"
+                    (click)="markRead(nudge)"
+                  >
+                    @if (nudge.sender.profileImage) {
+                      <img alt="" class="w-9 h-9 shrink-0 rounded-full object-cover" [src]="nudge.sender.profileImage" />
+                    } @else {
+                      <span class="w-9 h-9 shrink-0 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-[12px] font-bold">
+                        {{ initials(nudge.sender.name) }}
+                      </span>
+                    }
+                    <span class="flex-1 min-w-0 flex flex-col gap-0.5">
+                      <span class="flex items-center justify-between gap-2">
+                        <span class="font-label-lg text-label-lg text-on-surface truncate">{{ nudge.sender.name }}</span>
+                        <span class="shrink-0 font-label-sm text-label-sm text-on-surface-variant">{{ timeAgo(nudge.createdAt) }}</span>
+                      </span>
+                      <span class="font-body-md text-body-md line-clamp-3" [class]="nudge.isRead ? 'text-on-surface-variant' : 'text-on-surface'">
+                        {{ nudge.message }}
+                      </span>
+                    </span>
+                    @if (!nudge.isRead) {
+                      <span class="mt-1.5 w-2 h-2 shrink-0 rounded-full bg-primary" aria-label="Unread"></span>
+                    }
+                  </button>
+                </li>
+              } @empty {
+                <li class="px-6 py-10 flex flex-col items-center gap-2 text-center">
+                  <span class="material-symbols-outlined text-primary text-[28px]">waving_hand</span>
+                  <span class="font-title-md text-title-md text-on-surface">No nudges yet</span>
+                  <span class="font-body-md text-body-md text-on-surface-variant">
+                    When guests join one of your gatherings, their notes appear here.
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
       <div class="relative" #accountMenu>
         <button
           type="button"
@@ -54,8 +131,12 @@
     </div>
   </div>
 </header>
+}
 
-<main class="relative mx-auto w-full max-w-[430px] min-h-dvh pt-16 pb-24 bg-surface text-on-surface flex flex-col">
+<main
+  class="relative mx-auto w-full max-w-[430px] min-h-dvh pb-24 bg-surface text-on-surface flex flex-col"
+  [class.pt-16]="showHeader()"
+>
   <router-outlet />
 </main>
 
@@ -68,12 +149,22 @@
         <a
           [routerLink]="item.path"
           routerLinkActive="!text-primary"
+          [routerLinkActiveOptions]="{ exact: item.path === '/' }"
           ariaCurrentWhenActive="page"
           class="flex-1 flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors min-h-[44px]"
         >
           <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
           <span class="font-label-sm text-label-sm tracking-wide">{{ item.label }}</span>
         </a>
+      } @else if (item.action) {
+        <button
+          type="button"
+          class="flex-1 flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors min-h-[44px]"
+          (click)="item.action()"
+        >
+          <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+          <span class="font-label-sm text-label-sm tracking-wide">{{ item.label }}</span>
+        </button>
       } @else {
         <button
           type="button"

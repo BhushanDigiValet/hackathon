@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { CircleCard, CircleCardDto, SwipeAction } from '../models/stay.models';
+import { CircleCard, CircleCardDto, NUDGE_MESSAGE_MAX, SwipeAction } from '../models/stay.models';
 
 @Injectable({ providedIn: 'root' })
 export class CirclesService {
@@ -24,8 +24,10 @@ export class CirclesService {
       .pipe(map((cards) => cards.map((c) => toCircleCard(c))));
   }
 
-  swipe(itineraryId: number, action: SwipeAction): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/swipe`, { itineraryId, action });
+  /** A join with a `message` also sends it to the host as a nudge; passes never carry one. */
+  swipe(itineraryId: number, action: SwipeAction, message?: string): Observable<unknown> {
+    const note = action === 'join' ? message?.trim().slice(0, NUDGE_MESSAGE_MAX) : undefined;
+    return this.http.post(`${this.baseUrl}/swipe`, { itineraryId, action, ...(note ? { message: note } : {}) });
   }
 
   /** Demo helper: forgets every swipe so the feed starts over. */

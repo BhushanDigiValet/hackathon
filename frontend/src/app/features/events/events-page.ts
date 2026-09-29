@@ -5,16 +5,20 @@ import {
   Injector,
   afterNextRender,
   computed,
+  effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { forkJoin, timer } from 'rxjs';
 
-import { CircleCard, SwipeAction } from '../../core/models/stay.models';
+import { CircleCard, NUDGE_MESSAGE_MAX, SwipeAction } from '../../core/models/stay.models';
 import { CirclesService } from '../../core/services/circles.service';
+import { NudgeComposerService } from '../../core/services/nudge-composer.service';
 import { PersonalizationService } from '../../core/services/personalization.service';
 import { CELEBRATION_MS, JoinCelebration } from './join-celebration/join-celebration';
 
@@ -67,7 +71,7 @@ export class EventsPage {
 
   /** Top card plus the two peeking behind it; tracked by id so each keeps its element as it moves up. */
   protected readonly visibleCards = computed(() => this.cards().slice(0, 3));
-  protected readonly active = computed(() => this.cards()[0]);
+  protected readonly active = computed<CircleCard | undefined>(() => this.cards()[0]);
   /** True while a card is flying off; blocks new swipes until the stack settles. */
   protected readonly exiting = signal(false);
   /** True from a join until we leave for the itinerary; only one gathering can be confirmed. */
@@ -78,6 +82,12 @@ export class EventsPage {
   protected readonly passFeedbackKeys = computed(() => (this.passCount() ? [this.passCount()] : []));
 
   protected readonly matchSheet = signal<CircleCard | null>(null);
+
+  // Nudge sheet: a note for the top card's host, sent with the join.
+  private readonly composer = inject(NudgeComposerService);
+  protected readonly nudgeOpen = signal(false);
+  protected readonly nudgeDraft = signal('');
+  protected readonly nudgeMax = NUDGE_MESSAGE_MAX;
   protected readonly toast = signal<{ message: string; tone: 'success' | 'error' } | null>(null);
   /** Cards whose host photo failed to load; they fall back to initials. */
   protected readonly brokenAvatars = signal<ReadonlySet<number>>(new Set());
@@ -93,6 +103,16 @@ export class EventsPage {
 
   constructor() {
     this.load();
+    // The footer's Nudge tab asks for the sheet; open it here, beside the card.
+    effect(() => {
+      if (!this.composer.pending()) return;
+      untracked(() => {
+        this.composer.pending.set(false);
+        this.matchSheet.set(null);
+        this.nudgeDraft.set('');
+        this.nudgeOpen.set(true);
+      });
+    });
     this.destroyRef.onDestroy(() => {
       clearTimeout(this.toastTimer);
       this.endDrag();
@@ -213,8 +233,11 @@ export class EventsPage {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-    if (this.matchSheet()) {
-      if (event.key === 'Escape') this.matchSheet.set(null);
+    if (this.matchSheet() || this.nudgeOpen()) {
+      if (event.key === 'Escape') {
+        this.matchSheet.set(null);
+        this.nudgeOpen.set(false);
+      }
       return;
     }
     // The target can be the Document itself, which has no closest().
@@ -226,8 +249,19 @@ export class EventsPage {
 
   // --- Swiping --------------------------------------------------------------
 
+  /** Joins the top card with the guest's note, which the host receives as a nudge. */
+  protected sendNudge(): void {
+    const message = this.nudgeDraft().trim();
+    this.nudgeOpen.set(false);
+    this.swipe('join', message || undefined);
+  }
+
+  protected closeNudge(): void {
+    this.nudgeOpen.set(false);
+  }
+
   /** Flies the top card off (continuing from any drag) and records the swipe. */
-  protected swipe(action: SwipeAction): void {
+  protected swipe(action: SwipeAction, message?: string): void {
     const card = this.active();
     if (!card || this.exiting() || this.joining()) return;
 
@@ -261,7 +295,7 @@ export class EventsPage {
       });
     }
 
-    if (action === 'join') this.join(card);
+    if (action === 'join') this.join(card, message);
     else this.pass(card);
 
     setTimeout(() => this.removeCard(card.itineraryId, action === 'pass'), this.ms(EXIT_MS));
@@ -271,7 +305,7 @@ export class EventsPage {
    * A guest confirms one gathering at a time: celebrate, then take them to
    * their itinerary once the join is confirmed and the moment has played out.
    */
-  private join(card: CircleCard): void {
+  private join(card: CircleCard, message?: string): void {
     this.joining.set(true);
     setTimeout(() => {
       if (this.joining()) {
@@ -279,7 +313,7 @@ export class EventsPage {
       }
     }, this.ms(160));
 
-    forkJoin([this.circles.swipe(card.itineraryId, 'join'), timer(this.ms(CELEBRATION_MS))])
+    forkJoin([this.circles.swipe(card.itineraryId, 'join', message), timer(this.ms(CELEBRATION_MS))])
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.router.navigate(['/itinerary']),
@@ -287,7 +321,18 @@ export class EventsPage {
           console.error('Failed to join gathering', err);
           this.joining.set(false);
           this.celebration.set(null);
-          this.showToast('We couldn’t confirm your place. Please try again.', 'error');
+          const status = err instanceof HttpErrorResponse ? err.status : 0;
+          if (status === 409) {
+            // Full: no nudge was sent and the card stays gone.
+            this.showToast('That gathering just filled up. No nudge was sent.', 'error');
+            return;
+          }
+          this.showToast(
+            status === 400
+              ? 'You can’t join this gathering. No nudge was sent.'
+              : 'We couldn’t confirm your place. Please try again.',
+            'error',
+          );
           // Put the card back on top once its fly-off has finished.
           setTimeout(() => {
             this.swipedIds.delete(card.itineraryId);

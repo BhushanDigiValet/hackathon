@@ -11,16 +11,17 @@ export const routes: Routes = [
   },
   {
     path: '',
-    pathMatch: 'full',
-    title: 'Stay · Welcome',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/welcome/welcome-page').then((m) => m.WelcomePage),
-  },
-  {
-    path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./layout/tab-shell/tab-shell').then((m) => m.TabShell),
     children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        title: 'Stay · Welcome',
+        // Welcome has its own hero; it only takes the shell's bottom nav.
+        data: { section: 'Plan', hideHeader: true },
+        loadComponent: () => import('./features/welcome/welcome-page').then((m) => m.WelcomePage),
+      },
       {
         path: 'itinerary',
         title: 'Stay · Today',

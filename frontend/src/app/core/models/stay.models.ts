@@ -103,6 +103,30 @@ export interface ProfileDto {
 
 export type SwipeAction = 'join' | 'pass';
 
+/** Longest nudge note the backend keeps; longer notes are cut. */
+export const NUDGE_MESSAGE_MAX = 500;
+
+/** A note the host receives when a guest joins their gathering (GET /api/nudges). */
+export interface Nudge {
+  id: number;
+  recipientGuestId: number;
+  senderGuestId: number;
+  itineraryId: number;
+  /** Currently always `circle_join`; unknown types are shown as plain messages. */
+  type: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  sender: { guestId: number; name: string; profileImage?: string | null };
+}
+
+export interface NudgesResponse {
+  nudges: Nudge[];
+  unreadCount: number;
+  /** Highest id returned (or the afterId sent); the next poll's afterId. */
+  latestId: number;
+}
+
 export interface MatchBreakdownRow {
   key: string;
   label: string;
