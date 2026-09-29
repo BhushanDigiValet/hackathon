@@ -40,12 +40,23 @@ export interface ComposedPlanItem {
   why: string;
   upsellItemId?: number;
   upsellReason?: string;
+  setting?: string;
+  footerText?: string;
+  actionLabel?: string;
+  tags?: string[];
 }
 
-export type ComposePlanResult = ComposedPlanItem[] & {
+/** Day-level text the LLM writes alongside the items. */
+export interface ComposePlanMeta {
   planSummary?: string;
-  items?: ComposedPlanItem[];
-};
+  title?: string;
+  inviteMessage?: string;
+}
+
+export type ComposePlanResult = ComposedPlanItem[] &
+  ComposePlanMeta & {
+    items?: ComposedPlanItem[];
+  };
 
 export interface ReshapedPlanResult {
   understood: string | boolean;
@@ -96,6 +107,17 @@ function extractJson(text: string): any | null {
   const end = text.lastIndexOf('}');
   if (start === -1 || end === -1) return null;
   return JSON.parse(text.substring(start, end + 1));
+}
+
+/** Trims optional LLM text to a word limit; undefined when empty or not a string. */
+function shortText(value: unknown, maxWords: number): string | undefined {
+  if (typeof value !== 'string' || !value.trim()) return undefined;
+  return value
+    .replace(/!+/g, '.')
+    .trim()
+    .split(/\s+/)
+    .slice(0, maxWords)
+    .join(' ');
 }
 
 function timesOverlap(
@@ -344,7 +366,7 @@ export class AiService {
         console.log(
           `[ai] compose ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`,
         );
-        return this.wrapComposeResult(cached.planSummary, cached.items);
+        return this.wrapComposeResult(cached, cached.items);
       }
 
       // 5. Call LLM
@@ -422,6 +444,13 @@ export class AiService {
             .join(' ');
         }
 
+        const tags = Array.isArray(it.tags)
+          ? it.tags
+              .map((t: unknown) => shortText(t, 3))
+              .filter(Boolean)
+              .slice(0, 3)
+          : undefined;
+
         cleanItems.push({
           catalogueItemId: id,
           startAt,
@@ -429,6 +458,10 @@ export class AiService {
           why,
           upsellItemId,
           upsellReason,
+          setting: shortText(it.setting, 6),
+          footerText: shortText(it.footerText, 6),
+          actionLabel: shortText(it.actionLabel, 3),
+          tags: tags?.length ? tags : undefined,
         });
       }
 
@@ -444,14 +477,19 @@ export class AiService {
       }
 
       const planSummary = parsed.planSummary.replace(/!+/g, '.').trim();
-      const resultObj = { planSummary, items: cleanItems };
+      const resultObj = {
+        planSummary,
+        title: shortText(parsed.title, 6),
+        inviteMessage: shortText(parsed.inviteMessage, 45),
+        items: cleanItems,
+      };
 
       // 8. Cache and log
       this.demoCache.set('composePlan', cacheKey, resultObj);
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       console.log(`[ai] compose ${elapsed}s`);
 
-      return this.wrapComposeResult(planSummary, cleanItems);
+      return this.wrapComposeResult(resultObj, cleanItems);
     } catch (error) {
       console.warn('[ai] composePlan failed', error);
       return null;
@@ -773,11 +811,13 @@ export class AiService {
    * so both `result.items`, `result.planSummary`, and array iteration/indexing work!
    */
   private wrapComposeResult(
-    planSummary: string,
+    meta: ComposePlanMeta,
     items: ComposedPlanItem[],
   ): ComposePlanResult {
     const arr = [...items] as any;
-    arr.planSummary = planSummary;
+    arr.planSummary = meta.planSummary;
+    arr.title = meta.title;
+    arr.inviteMessage = meta.inviteMessage;
     arr.items = items;
     return arr as ComposePlanResult;
   }

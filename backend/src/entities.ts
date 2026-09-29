@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 
 /**
@@ -414,6 +415,8 @@ export interface CuratedItineraryItem {
   footerText?: string;
   /** Footer call-to-action label (e.g. 'Host Details', 'View Menu') */
   actionLabel?: string;
+  /** Optional chips shown on invitation cards (e.g. 'Acoustic Jazz') */
+  tags?: string[];
 }
 
 /**
@@ -458,11 +461,51 @@ export class GuestItinerary {
   @Column({ type: 'json', nullable: true })
   items: CuratedItineraryItem[];
 
+  /** How many other guests can join this itinerary via Guest Circles */
+  @Column({ type: 'int', default: 4 })
+  spotsTotal: number;
+
+  /** Host's personal invitation quote shown on the circles card */
+  @Column({ type: 'text', nullable: true })
+  inviteMessage: string;
+
   /** Timestamp of when the itinerary was created */
   @CreateDateColumn()
   createdAt: Date;
 
   /** Timestamp of when the itinerary was last updated */
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+
+/**
+ * A guest's swipe decision on another guest's itinerary in the Guest
+ * Circles feed. Any swiped itinerary is excluded from that guest's feed.
+ */
+@Entity('itinerary_swipe')
+@Unique(['guestId', 'itineraryId'])
+export class ItinerarySwipe {
+  /** Unique identifier for the swipe */
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  /** The guest who swiped */
+  @Column()
+  guestId: number;
+
+  /** The GuestItinerary that was swiped on */
+  @Column()
+  itineraryId: number;
+
+  /** 'pass' (never show again) or 'join' (confirmed attendance) */
+  @Column({ type: 'varchar', length: 10 })
+  action: 'pass' | 'join';
+
+  /** Timestamp of the first swipe */
+  @CreateDateColumn()
+  createdAt: Date;
+
+  /** Timestamp of the latest swipe change */
   @UpdateDateColumn()
   updatedAt: Date;
 }
@@ -482,4 +525,5 @@ export const ALL_ENTITIES = [
   MasterCadence,
   MasterTravelCompany,
   GuestItinerary,
+  ItinerarySwipe,
 ];

@@ -1,6 +1,6 @@
 export const COMPOSE_PLAN_LLM_CONFIG = {
   timeoutMs: 12000,
-  maxTokens: 1500,
+  maxTokens: 2500,
   temperature: 0.5,
 };
 
@@ -26,6 +26,12 @@ Writing:
 - why: max 22 words, second person, tie the choice to what the guest said. Vary the wording; don't start every line with 'You'.
 - upsellReason: max 18 words, explains why it fits their day, never salesy.
 - planSummary: one or two sentences explaining the shape of the day, e.g. 'You wanted to slow down, so the morning is yours and the afternoon stays open after your spa.'
+- title: 2-5 evocative words naming this particular day, e.g. 'A Day of Deep Restoration' or 'The Adventurer's Weekend'. Never 'Your Curated Journey'.
+- inviteMessage: one or two first-person sentences the guest could post to invite fellow guests to their evening highlight, e.g. 'Opening a bottle by the fire pit after dinner. Two fellow wine lovers welcome.'
+- setting: max 6 words describing where or how the item happens, e.g. 'Private cabana · Garden view'. Describe the catalogue item only; never name another venue.
+- footerText: max 6 words of practical detail, e.g. 'Dress code: resort chic' or 'Arrive 15 minutes early'.
+- actionLabel: a 1-3 word link label fitting the item, e.g. 'View Menu', 'Treatment details', 'Directions'.
+- tags: 2-3 short chips (1-3 words each) describing the item's vibe, e.g. 'Acoustic Jazz', 'Unrushed'.
 Return JSON only.
 `.trim();
 
@@ -37,6 +43,9 @@ export function buildComposePlanPrompt(
   const schema = {
     planSummary:
       'one or two sentences in second person explaining the shape of the day',
+    title: '2-5 evocative words naming this day',
+    inviteMessage:
+      'one or two first-person sentences inviting fellow guests to the evening highlight',
     items: [
       {
         catalogueItemId: 'number (must match an id from the catalogue)',
@@ -45,6 +54,10 @@ export function buildComposePlanPrompt(
         why: 'second person, max 22 words, connecting choice to guest words',
         upsellItemId: 'number (optional, must be from that item upgrades list)',
         upsellReason: 'max 18 words, optional, why it fits the guest flow',
+        setting: 'max 6 words, where or how it happens',
+        footerText: 'max 6 words of practical detail',
+        actionLabel: '1-3 word link label',
+        tags: ['2-3 short vibe chips'],
       },
     ],
   };

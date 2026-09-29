@@ -1,40 +1,46 @@
 import { Repository } from 'typeorm';
-import { CuratedItineraryItem, Guest, GuestItinerary } from '../entities';
+import {
+  CuratedItineraryItem,
+  Guest,
+  GuestItinerary,
+  StayProfile,
+} from '../entities';
+import { IMAGES, VIDEOS } from '../common/stock-media';
 
-const img = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?w=1200&q=80&auto=format&fit=crop`;
+const BUDGET_TIERS = {
+  2: 'Tier 2 - Elevated',
+  3: 'Tier 3 - Luxury',
+  4: 'Tier 4 - Unrestricted',
+} as const;
 
-const IMAGES = {
-  resortNight: img('1566073771259-6a8506099945'),
-  resortPool: img('1571896349842-33c89424de2d'),
-  resortVilla: img('1520250497591-112f2f40a3f4'),
-  hotelExterior: img('1542314831-068cd1dbfeeb'),
-  hotelLobby: img('1551882547-ff40c63fe5fa'),
-  suite: img('1582719508461-905c673771fd'),
-  fineDining: img('1414235077428-338989a2e8c0'),
-  restaurant: img('1517248135467-4c7edcad34c4'),
-  spa: img('1544161515-4ab6ce6db874'),
-  spaStones: img('1540555700478-4be289fbecef'),
-  jazz: img('1415201364774-f6f0bb35f28f'),
-  concert: img('1511192336575-5a79af67a629'),
-  beachSunset: img('1507525428034-b723cf961d3e'),
-  cocktails: img('1470337458703-46ad1756a187'),
-};
-
-// Short public sample clips used as placeholder cinematic previews
-const VIDEOS = {
-  jellyfish:
-    'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4',
-  sintel:
-    'https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4',
-  bunny:
-    'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4',
-};
+/**
+ * Fixed stay-profile preferences for the host of each seeded itinerary, so
+ * Guest Circles matching is deterministic. Ids refer to the master tables:
+ * moods 1 Relaxed, 2 Indulgent, 3 Adventurous, 4 Romantic, 5 Social,
+ * 6 Recharge; pace 1 Slow, 2 Balanced, 3 Packed; company 1 Just me,
+ * 2 Partner, 3 Friends, 4 Family.
+ */
+const hostPrefs = (
+  atmosphereMoodIds: number[],
+  itineraryCadenceId: number,
+  travelCompanyId: number,
+  budgetTier: keyof typeof BUDGET_TIERS,
+  openToGuestCircles = true,
+) => ({
+  atmosphereMoodIds,
+  itineraryCadenceId,
+  travelCompanyId,
+  budgetTier: BUDGET_TIERS[budgetTier],
+  openToGuestCircles,
+});
 
 type ItinerarySeed = Omit<
   GuestItinerary,
   'id' | 'guestId' | 'createdAt' | 'updatedAt'
-> & { items: CuratedItineraryItem[] };
+> & {
+  items: CuratedItineraryItem[];
+  hostPreferences: ReturnType<typeof hostPrefs>;
+};
 
 const ITINERARIES: ItinerarySeed[] = [
   {
@@ -42,6 +48,10 @@ const ITINERARIES: ItinerarySeed[] = [
     tagline:
       'Arrive slowly, breathe out. Every hour prepared for your arrival.',
     suiteLabel: 'Suite 1204',
+    spotsTotal: 4,
+    inviteMessage:
+      'Staying on for the jazz salon after dinner — join us for a nightcap by the fire.',
+    hostPreferences: hostPrefs([2, 5], 2, 2, 3),
     itineraryDate: '2026-10-02',
     posterUrl: IMAGES.resortNight,
     videoUrl: VIDEOS.jellyfish,
@@ -102,6 +112,10 @@ const ITINERARIES: ItinerarySeed[] = [
     title: 'A Day of Deep Restoration',
     tagline: 'No alarms, no rush. Let the day unfold at your pace.',
     suiteLabel: 'Villa 7',
+    spotsTotal: 2,
+    inviteMessage:
+      'A quiet day of restoring ourselves. Happy to share the chef’s counter with one more calm couple.',
+    hostPreferences: hostPrefs([1, 6], 1, 2, 3),
     itineraryDate: '2026-10-02',
     posterUrl: IMAGES.spa,
     videoUrl: VIDEOS.sintel,
@@ -155,6 +169,10 @@ const ITINERARIES: ItinerarySeed[] = [
     title: 'The Adventurer’s Weekend',
     tagline: 'Big days, late nights, and not a minute wasted.',
     suiteLabel: 'Suite 2210',
+    spotsTotal: 6,
+    inviteMessage:
+      'Rooftop after the show, the more the merrier. Bring your best story from the day.',
+    hostPreferences: hostPrefs([3, 5], 3, 3, 2),
     itineraryDate: '2026-10-03',
     posterUrl: IMAGES.beachSunset,
     videoUrl: VIDEOS.bunny,
@@ -219,6 +237,10 @@ const ITINERARIES: ItinerarySeed[] = [
     title: 'A Romantic Escape',
     tagline: 'Just the two of you, and everything taken care of.',
     suiteLabel: 'Penthouse 3',
+    spotsTotal: 2,
+    inviteMessage:
+      'Celebrating our anniversary at the beach cabana. One more couple welcome for a sunset toast.',
+    hostPreferences: hostPrefs([4, 2], 1, 2, 4),
     itineraryDate: '2026-10-04',
     posterUrl: IMAGES.resortVilla,
     videoUrl: VIDEOS.jellyfish,
@@ -272,6 +294,10 @@ const ITINERARIES: ItinerarySeed[] = [
     title: 'Family Days by the Water',
     tagline: 'Something for everyone, with room to breathe in between.',
     suiteLabel: 'Family Suite 804',
+    spotsTotal: 6,
+    inviteMessage:
+      'Our kids would love pool buddies! Big cabana, plenty of snacks, parents very welcome.',
+    hostPreferences: hostPrefs([1, 5], 2, 4, 2),
     itineraryDate: '2026-10-05',
     posterUrl: IMAGES.resortPool,
     videoUrl: VIDEOS.bunny,
@@ -324,6 +350,10 @@ const ITINERARIES: ItinerarySeed[] = [
     title: 'Solo Reset',
     tagline: 'A day that asks nothing of you.',
     suiteLabel: 'Suite 1510',
+    spotsTotal: 1,
+    inviteMessage: 'Mostly keeping to myself this trip.',
+    // Opted out of guest circles: never appears in anyone's feed
+    hostPreferences: hostPrefs([1, 6], 1, 1, 3, false),
     itineraryDate: '2026-10-06',
     posterUrl: IMAGES.hotelExterior,
     videoUrl: VIDEOS.sintel,
@@ -369,15 +399,252 @@ const ITINERARIES: ItinerarySeed[] = [
       },
     ],
   },
+  {
+    title: 'An Evening Among Friends',
+    tagline: 'Slow jazz, rare vintages and conversation that runs late.',
+    suiteLabel: 'Suite 1408',
+    itineraryDate: '2026-10-02',
+    posterUrl: IMAGES.resortNight,
+    videoUrl: VIDEOS.jellyfish,
+    spotsTotal: 2,
+    inviteMessage:
+      'Opening a magnum of Dom Pérignon 2012 by the fountain fire bowl. Seeking two fellow art or wine lovers for slow jazz and midnight conversation.',
+    hostPreferences: hostPrefs([1, 2], 1, 2, 3),
+    items: [
+      {
+        time: '19:00',
+        status: 'confirmed',
+        statusLabel: 'Confirmed',
+        location: 'Tableau · Salon Privé',
+        durationLabel: '2 hours',
+        title: 'Seasonal Botanical Tasting',
+        description: 'Six courses with rare vintage pairings.',
+        imageUrl: IMAGES.fineDining,
+      },
+      {
+        time: '21:00',
+        status: 'open',
+        statusLabel: 'Open Invitation',
+        location: 'North Veranda Pavilion · Private Fire Pit #3',
+        title: 'Twilight Champagne & Vinyl on the Fountain Terrace',
+        description:
+          'A private fire pit on the fountain terrace with a vinyl selection and a magnum on ice.',
+        imageUrl: IMAGES.resortNight,
+        note: 'Verified Resident Invitation',
+        tags: ['Acoustic Jazz', 'Grand Cru Tasting', 'Unrushed Convo'],
+      },
+    ],
+  },
+  {
+    title: 'Sunrise Wellness Circle',
+    tagline: 'Early light, slow breath, strong coffee.',
+    suiteLabel: 'Suite 602',
+    itineraryDate: '2026-10-03',
+    posterUrl: IMAGES.spa,
+    videoUrl: VIDEOS.sintel,
+    spotsTotal: 5,
+    inviteMessage:
+      'Leading a small sunrise breathwork session before the spa opens. Beginners very welcome.',
+    hostPreferences: hostPrefs([1, 6], 1, 1, 2),
+    items: [
+      {
+        time: '06:45',
+        status: 'open',
+        statusLabel: 'Open Invitation',
+        location: 'Sky Deck · Studio',
+        durationLabel: '45 min',
+        title: 'Sunrise Breathwork & Stretch',
+        description:
+          'Guided breathwork followed by a gentle stretch as the sun comes up.',
+        imageUrl: IMAGES.spaStones,
+        tags: ['Breathwork', 'Sunrise', 'All Levels'],
+      },
+      {
+        time: '10:00',
+        status: 'confirmed',
+        statusLabel: 'Confirmed',
+        location: 'The Spa · Thermal Suite',
+        durationLabel: '90 min',
+        title: 'Thermal Circuit',
+        description: 'Steam, sauna and cold plunge circuit.',
+      },
+    ],
+  },
+  {
+    title: 'Rooftop Mixology Night',
+    tagline: 'Shake, stir, repeat — then dance.',
+    suiteLabel: 'Suite 3001',
+    itineraryDate: '2026-10-03',
+    posterUrl: IMAGES.cocktails,
+    videoUrl: VIDEOS.bunny,
+    spotsTotal: 6,
+    inviteMessage:
+      'Booked the rooftop mixology class and have extra seats. Come learn three cocktails, then stay for the DJ.',
+    hostPreferences: hostPrefs([5, 3], 3, 3, 3),
+    items: [
+      {
+        time: '20:00',
+        status: 'open',
+        statusLabel: 'Open Invitation',
+        location: 'Skybar · Rooftop',
+        durationLabel: '90 min',
+        title: 'Mixology Masterclass',
+        description:
+          'Head bartender walks you through three signature cocktails.',
+        imageUrl: IMAGES.cocktails,
+        tags: ['Cocktails', 'DJ Set', 'Rooftop'],
+      },
+    ],
+  },
+  {
+    title: 'Cellar Door Evening',
+    tagline: 'Old vintages, new friends.',
+    suiteLabel: 'Villa 12',
+    itineraryDate: '2026-10-04',
+    posterUrl: IMAGES.restaurant,
+    videoUrl: VIDEOS.sintel,
+    spotsTotal: 3,
+    inviteMessage:
+      'Private cellar tasting with the head sommelier — six Burgundies side by side. Looking for fellow wine lovers.',
+    hostPreferences: hostPrefs([2, 4], 2, 2, 4),
+    items: [
+      {
+        time: '18:30',
+        status: 'open',
+        statusLabel: 'Open Invitation',
+        location: 'The Cellar · Private Vault',
+        durationLabel: '2 hours',
+        title: 'Burgundy Vertical Tasting',
+        description:
+          'Six Burgundies from one estate, paired with aged cheeses.',
+        imageUrl: IMAGES.restaurant,
+        tags: ['Grand Cru Tasting', 'Sommelier Led', 'Intimate'],
+      },
+    ],
+  },
+  {
+    title: 'Lagoon Afternoon',
+    tagline: 'Sun, splash and ice cream.',
+    suiteLabel: 'Family Suite 812',
+    itineraryDate: '2026-10-05',
+    posterUrl: IMAGES.resortPool,
+    videoUrl: VIDEOS.bunny,
+    spotsTotal: 8,
+    inviteMessage:
+      'Two cabanas booked next to the kids’ pool. Other families welcome to join — we’ll bring the ice cream.',
+    hostPreferences: hostPrefs([1, 5], 2, 4, 2),
+    items: [
+      {
+        time: '13:00',
+        status: 'open',
+        statusLabel: 'Open Invitation',
+        location: 'Lagoon Pool · Cabanas 14-15',
+        durationLabel: 'Afternoon',
+        title: 'Family Pool Party',
+        description:
+          'Pool games, a lifeguard on duty and an ice-cream cart at 15:00.',
+        imageUrl: IMAGES.resortPool,
+        tags: ['Kids Welcome', 'Pool Games', 'Ice Cream'],
+      },
+    ],
+  },
+  {
+    title: 'Desert Stargazing',
+    tagline: 'Leave the lights behind.',
+    suiteLabel: 'Suite 1702',
+    itineraryDate: '2026-10-05',
+    posterUrl: IMAGES.beachSunset,
+    videoUrl: VIDEOS.jellyfish,
+    spotsTotal: 4,
+    inviteMessage:
+      'Private 4x4 out to the dunes with an astronomer. Two seats left for another adventurous couple.',
+    hostPreferences: hostPrefs([3, 4], 2, 2, 3),
+    items: [
+      {
+        time: '21:30',
+        status: 'open',
+        statusLabel: 'Open Invitation',
+        location: 'Desert Camp · Dune Ridge',
+        durationLabel: '3 hours',
+        title: 'Stargazing with an Astronomer',
+        description:
+          'Telescopes, a fire pit and hot chocolate under a dark-sky reserve.',
+        imageUrl: IMAGES.beachSunset,
+        tags: ['Stargazing', 'Adventure', 'Fire Pit'],
+      },
+    ],
+  },
+  {
+    title: 'Chef’s Table Social',
+    tagline: 'Ten seats, one long table, no strangers.',
+    suiteLabel: 'Penthouse 1',
+    itineraryDate: '2026-10-06',
+    posterUrl: IMAGES.fineDining,
+    videoUrl: VIDEOS.sintel,
+    spotsTotal: 4,
+    inviteMessage:
+      'Hosting a long-table dinner with the executive chef. Great food, better company — four seats open.',
+    hostPreferences: hostPrefs([2, 5], 2, 3, 4),
+    items: [
+      {
+        time: '20:00',
+        status: 'open',
+        statusLabel: 'Open Invitation',
+        location: 'Ember & Oak · Chef’s Table',
+        durationLabel: '3 hours',
+        title: 'Long-Table Tasting Dinner',
+        description:
+          'A twelve-course menu served family style by the executive chef.',
+        imageUrl: IMAGES.fineDining,
+        tags: ['Chef’s Table', 'Social Dining', 'Wine Pairing'],
+      },
+    ],
+  },
+  {
+    title: 'Late Jazz & Whisky',
+    tagline: 'Low light, lower voices.',
+    suiteLabel: 'Suite 1101',
+    itineraryDate: '2026-10-06',
+    posterUrl: IMAGES.jazz,
+    videoUrl: VIDEOS.jellyfish,
+    spotsTotal: 3,
+    inviteMessage:
+      'Reserved the corner booth for the late trio. Looking for a couple of whisky people to share a rare flight.',
+    hostPreferences: hostPrefs([1, 2, 5], 1, 1, 3),
+    items: [
+      {
+        time: '22:30',
+        status: 'open',
+        statusLabel: 'Open Invitation',
+        location: 'The Velvet Nook · Corner Booth',
+        durationLabel: '2 hours',
+        title: 'Rare Whisky Flight & Jazz Trio',
+        description:
+          'Four rare single malts poured tableside while the late trio plays.',
+        imageUrl: IMAGES.jazz,
+        tags: ['Acoustic Jazz', 'Whisky Flight', 'Unrushed Convo'],
+      },
+    ],
+  },
 ];
 
-/** Seeds one itinerary each for the first few guests. */
+/**
+ * Seeds one itinerary each for the first guests (1-14) and gives each host
+ * fixed stay-profile preferences so Guest Circles matching is deterministic.
+ */
 export async function seedItineraries(
   itineraryRepo: Repository<GuestItinerary>,
+  profileRepo: Repository<StayProfile>,
   guests: Guest[],
 ) {
-  const itineraries = ITINERARIES.map((data, index) =>
-    itineraryRepo.create({ ...data, guestId: guests[index].id }),
-  );
-  await itineraryRepo.save(itineraries);
+  for (const [index, { hostPreferences, ...data }] of ITINERARIES.entries()) {
+    const guestId = guests[index].id;
+    await itineraryRepo.save(itineraryRepo.create({ ...data, guestId }));
+
+    const profile = await profileRepo.findOne({ where: { guestId } });
+    if (profile) {
+      profile.preferences = { ...profile.preferences, ...hostPreferences };
+      await profileRepo.save(profile);
+    }
+  }
 }

@@ -14,6 +14,7 @@ import {
   MasterCadence,
   MasterTravelCompany,
   GuestItinerary,
+  ItinerarySwipe,
 } from '../entities';
 import { seedCatalogue } from './catalogue';
 import { seedItineraries } from './itineraries';
@@ -33,6 +34,7 @@ export async function seedAll(
   cadenceRepo: Repository<MasterCadence>,
   travelCompanyRepo: Repository<MasterTravelCompany>,
   itineraryRepo: Repository<GuestItinerary>,
+  swipeRepo: Repository<ItinerarySwipe>,
 ) {
   // 1. Clear all tables (disable FK checks temporarily)
   await guestRepo.query('SET FOREIGN_KEY_CHECKS = 0');
@@ -49,6 +51,7 @@ export async function seedAll(
   await cadenceRepo.clear();
   await travelCompanyRepo.clear();
   await itineraryRepo.clear();
+  await swipeRepo.clear();
   await guestRepo.query('SET FOREIGN_KEY_CHECKS = 1');
 
   // 2. Seed base Catalogue Items (creates ~30 items)
@@ -239,8 +242,9 @@ export async function seedAll(
   }
   await memoryReelRepo.save(memoryReels);
 
-  // 12. Seed curated itineraries (poster, video, timeline) for guests 1-6
-  await seedItineraries(itineraryRepo, guests);
+  // 12. Seed curated itineraries (poster, video, timeline) for guests 1-14,
+  // with fixed host preferences for Guest Circles matching
+  await seedItineraries(itineraryRepo, profileRepo, guests);
 
   // 13. Seed Master Tables (Figma Data)
   await atmosphereRepo.save([

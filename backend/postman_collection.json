@@ -516,6 +516,135 @@
       ]
     },
     {
+      "name": "Circles",
+      "description": "Guest Circles swipe feed: other guests' itineraries ranked by preference match. Swiped itineraries (pass or join) never reappear in the feed.",
+      "item": [
+        {
+          "name": "Get Circles Feed",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/circles/feed?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["circles", "feed"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Max cards (default 10)"
+                }
+              ]
+            },
+            "description": "Ranked by matchPercent (0-100). Each card has matchBreakdown (per-key percent: atmosphere 40, pace 20, travelCompany 15, budget 15, interests 10), matchReasons, host, inviteMessage, spotsRemaining, highlight item and tags. Excludes: own itinerary, already swiped, hosts with openToGuestCircles=false, full itineraries."
+          }
+        },
+        {
+          "name": "Swipe - Join",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itineraryId\": 7,\n  \"action\": \"join\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/circles/swipe",
+              "host": ["{{baseUrl}}"],
+              "path": ["circles", "swipe"]
+            },
+            "description": "Confirms attendance: takes a spot, adds the guest as a group member on the host's shared plan, and notifies the host (circle_joined event). 409 when no spots remain, 400 on own itinerary."
+          }
+        },
+        {
+          "name": "Swipe - Pass",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itineraryId\": 8,\n  \"action\": \"pass\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/circles/swipe",
+              "host": ["{{baseUrl}}"],
+              "path": ["circles", "swipe"]
+            },
+            "description": "Hides the itinerary from the feed permanently. Passing on a previously joined itinerary frees the spot and removes the group membership."
+          }
+        },
+        {
+          "name": "Get Joined Circles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/circles/joined",
+              "host": ["{{baseUrl}}"],
+              "path": ["circles", "joined"]
+            },
+            "description": "Itineraries the guest has joined, same card shape as the feed."
+          }
+        },
+        {
+          "name": "Reset My Swipes",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/circles/swipes",
+              "host": ["{{baseUrl}}"],
+              "path": ["circles", "swipes"]
+            },
+            "description": "Demo helper: clears the guest's swipes and circle memberships so the full feed returns."
+          }
+        }
+      ]
+    },
+    {
       "name": "Video",
       "description": "AI video generation. Not guest-scoped (no x-guest-id needed).",
       "item": [

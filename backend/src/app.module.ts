@@ -15,6 +15,7 @@ import { MemoryModule } from './memory/memory.module';
 import { VideoModule } from './video/video.module';
 import { GuestModule } from './guest/guest.module';
 import { ItineraryModule } from './itinerary/itinerary.module';
+import { CirclesModule } from './circles/circles.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { ItineraryModule } from './itinerary/itinerary.module';
     VideoModule,
     PlanModule,
     ItineraryModule,
+    CirclesModule,
   ],
 })
 export class AppModule {}

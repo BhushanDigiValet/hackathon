@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, In } from 'typeorm';
-import { StayPlanItem, CatalogueItem, StayProfile } from '../entities';
+import {
+  StayPlanItem,
+  CatalogueItem,
+  StayProfile,
+  CuratedItineraryItem,
+} from '../entities';
+import { IMAGES, VIDEOS, imageForCatalogueItem } from '../common/stock-media';
 import { AiService } from '../ai/ai.service';
 import { ProfileService } from '../profile/profile.service';
 import { EventsService } from '../events/events.service';
@@ -274,40 +280,50 @@ export class PlanService {
       ].filter((p) => catalogueIds.has(p.catalogueItemId));
     }
 
-    const curatedItems = plan.map((p) => {
+    // Text fields come from the LLM; the fallback plans leave them empty.
+    const curatedItems: CuratedItineraryItem[] = plan.map((p) => {
       const cat = allCatalogue.find((c) => c.id === p.catalogueItemId);
       const upsell = p.upsellItemId
         ? allCatalogue.find((c) => c.id === p.upsellItemId)
         : null;
       const duration = cat?.details?.durationMin
         ? `${cat.details.durationMin} min`
-        : '';
+        : undefined;
 
       return {
         time: p.startAt || 'TBD',
         status: 'confirmed',
         statusLabel: 'Confirmed',
-        location: cat?.name || 'Resort',
+        location: p.setting || cat?.name || 'Resort',
         durationLabel: duration,
         title: cat?.name || 'Activity',
         description: cat?.description || '',
-        imageUrl: cat?.details?.imageUrl || '',
+        imageUrl: cat?.details?.imageUrl || imageForCatalogueItem(cat?.details),
         note: p.why || '',
-        footerText: upsell ? `Upgrade: ${upsell.name}` : undefined,
+        footerText:
+          p.footerText || (upsell ? `Upgrade: ${upsell.name}` : undefined),
+        actionLabel: p.actionLabel,
+        tags: p.tags,
       };
     });
 
+    // The last item is the evening peak: use its image as the poster.
+    const eveningPeak = curatedItems[curatedItems.length - 1];
+
     const guestItinerary = await this.itineraryService.upsertForGuest(guestId, {
-      title: 'Your Curated Journey',
+      title: llmPlan?.title || 'Your Curated Journey',
       tagline:
         llmPlan?.planSummary ||
         'Arrive slowly, breathe out. Every hour prepared for your arrival.',
       suiteLabel: 'Suite 1204',
       itineraryDate: '2026-10-02',
-      posterUrl:
-        'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80&auto=format&fit=crop',
-      videoUrl:
-        'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4',
+      posterUrl: eveningPeak?.imageUrl || IMAGES.resortNight,
+      videoUrl: VIDEOS.jellyfish,
+      inviteMessage:
+        llmPlan?.inviteMessage ||
+        (eveningPeak
+          ? `Heading to ${eveningPeak.title} at ${eveningPeak.time}. Fellow guests welcome to join.`
+          : undefined),
       items: curatedItems,
     });
 
