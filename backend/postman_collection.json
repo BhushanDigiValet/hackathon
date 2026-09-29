@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Sensonic Hackathon API",
-    "description": "API collection for the frontend team to integrate with the NestJS backend.",
+    "description": "API collection for the frontend team to integrate with the NestJS backend.\n\nMost endpoints are guest-scoped via the `x-guest-id` header (falls back to guest 1 when missing). Change the `guestId` collection variable to switch guests. Seeded data: 50 guests; guests 1-6 have a curated itinerary.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,6 +13,16 @@
     {
       "key": "guestId",
       "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "proposalId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "videoJobId",
+      "value": "",
       "type": "string"
     }
   ],
@@ -27,12 +37,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/guests",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "guests"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["guests"]
             }
           }
         },
@@ -42,14 +48,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/guests/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "guests",
-                "1"
-              ]
+              "raw": "{{baseUrl}}/guests/{{guestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["guests", "{{guestId}}"]
             }
           }
         },
@@ -65,7 +66,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Alex Johnson\",\n  \"email\": \"alex@example.com\"\n}",
+              "raw": "{\n  \"name\": \"Alex Johnson\",\n  \"email\": \"alex@example.com\",\n  \"profileImage\": \"https://randomuser.me/api/portraits/men/75.jpg\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -74,12 +75,8 @@
             },
             "url": {
               "raw": "{{baseUrl}}/guests",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "guests"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["guests"]
             }
           }
         }
@@ -88,6 +85,19 @@
     {
       "name": "Profile",
       "item": [
+        {
+          "name": "Get Profile Options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/profile/options",
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "options"]
+            },
+            "description": "Master data for the profile screen: atmospheres/moods, itinerary cadences and travel company options."
+          }
+        },
         {
           "name": "Get Profile",
           "request": {
@@ -100,12 +110,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/profile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "profile"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
             }
           }
         },
@@ -125,7 +131,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"preferences\": {\n    \"budgetTier\": \"luxury\",\n    \"pace\": \"relaxed\"\n  }\n}",
+              "raw": "{\n  \"atmosphereMoodIds\": [1, 4],\n  \"itineraryCadenceId\": 2,\n  \"travelCompanyId\": 2,\n  \"openToGuestCircles\": true,\n  \"doNotDisturbBefore\": \"09:00 AM\",\n  \"budgetTier\": \"Tier 3 - Luxury\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -134,13 +140,10 @@
             },
             "url": {
               "raw": "{{baseUrl}}/profile",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "profile"
-              ]
-            }
+              "host": ["{{baseUrl}}"],
+              "path": ["profile"]
+            },
+            "description": "Body fields are merged into the guest's stored preferences."
           }
         },
         {
@@ -168,23 +171,19 @@
             },
             "url": {
               "raw": "{{baseUrl}}/profile/extract",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "profile",
-                "extract"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["profile", "extract"]
             }
           }
         }
       ]
     },
     {
-      "name": "Memory",
+      "name": "Itinerary",
+      "description": "The guest's curated itinerary (cinematic poster/video preview + timeline cards). One itinerary per guest; guests 1-6 are seeded.",
       "item": [
         {
-          "name": "Get Memory",
+          "name": "Get Itinerary",
           "request": {
             "method": "GET",
             "header": [
@@ -194,35 +193,73 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/memory",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "memory"
-              ]
-            }
+              "raw": "{{baseUrl}}/itinerary",
+              "host": ["{{baseUrl}}"],
+              "path": ["itinerary"]
+            },
+            "description": "Returns the guest's itinerary, or 404 if they don't have one yet."
           }
         },
         {
-          "name": "Create Memory",
+          "name": "Add / Update Itinerary",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [
               {
                 "key": "x-guest-id",
                 "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Your Curated Journey\",\n  \"tagline\": \"Arrive slowly, breathe out. Every hour prepared for your arrival.\",\n  \"suiteLabel\": \"Suite 1204\",\n  \"itineraryDate\": \"2026-10-02\",\n  \"posterUrl\": \"https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80&auto=format&fit=crop\",\n  \"videoUrl\": \"https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4\",\n  \"items\": [\n    {\n      \"time\": \"15:00\",\n      \"status\": \"confirmed\",\n      \"statusLabel\": \"Confirmed\",\n      \"location\": \"Sanctuary Arrival · Private Wing\",\n      \"title\": \"Arrival & In-Suite Welcome Prelude\",\n      \"description\": \"Private botanical infusion service, luggage unburdening, and personalized digital keycard synchronization in Suite 1204.\",\n      \"note\": \"Curated to transition seamlessly from your transit without lobby reception queues.\",\n      \"footerText\": \"Suite ready at 14:30\",\n      \"actionLabel\": \"Host Details\"\n    },\n    {\n      \"time\": \"18:00\",\n      \"status\": \"confirmed\",\n      \"statusLabel\": \"Confirmed\",\n      \"location\": \"Lake of Dreams Terrace\",\n      \"durationLabel\": \"90 min\",\n      \"title\": \"Sunset Terrace & Vintage Reserve\",\n      \"description\": \"Private waterfront daybed reserved with Krug Grande Cuvée service and golden-hour acoustic soundscape prelude.\",\n      \"imageUrl\": \"https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&q=80&auto=format&fit=crop\",\n      \"imageCaption\": \"Table 4 · Lakeside View\",\n      \"note\": \"Because you asked for a beautiful sunset and something social tonight.\",\n      \"footerText\": \"Dress Code: Resort Chic\",\n      \"actionLabel\": \"View Menu\"\n    },\n    {\n      \"time\": \"23:00\",\n      \"status\": \"open\",\n      \"statusLabel\": \"Open Lounge\",\n      \"location\": \"The Velvet Nook · Open Seating\",\n      \"title\": \"Intimate Jazz Salon & Nightcap\",\n      \"description\": \"Live vinyl curation and acoustic harp performance. Fireplaces lit until 02:00.\",\n      \"note\": \"Signature cocktail \\\"Midnight Bourbon Bloom\\\" held for your arrival.\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "{{baseUrl}}/memory",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "memory"
-              ]
-            }
+              "raw": "{{baseUrl}}/itinerary",
+              "host": ["{{baseUrl}}"],
+              "path": ["itinerary"]
+            },
+            "description": "Creates the guest's itinerary if none exists, otherwise updates it. Partial bodies are fine on update (only sent fields change). Sending `items` replaces the whole list. `id` / `guestId` in the body are ignored."
+          }
+        },
+        {
+          "name": "Update Itinerary (partial)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"posterUrl\": \"https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=80&auto=format&fit=crop\",\n  \"videoUrl\": \"https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_1MB.mp4\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/itinerary",
+              "host": ["{{baseUrl}}"],
+              "path": ["itinerary"]
+            },
+            "description": "Example of updating only the poster and video."
           }
         }
       ]
@@ -242,13 +279,10 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/plan",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan"
-              ]
-            }
+              "host": ["{{baseUrl}}"],
+              "path": ["plan"]
+            },
+            "description": "Returns the guest's plan items (with catalogueItem and upsellItem populated), sorted by start time."
           }
         },
         {
@@ -263,53 +297,27 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/plan/generate",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                "generate"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Add Plan Item",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "x-guest-id",
-                "value": "{{guestId}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"catalogueItemId\": 1,\n  \"startAt\": \"14:00\",\n  \"endAt\": \"15:00\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/plan/items",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                "items"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["plan", "generate"]
             }
           }
         },
         {
           "name": "Reshape Plan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.proposalId) {",
+                  "  pm.collectionVariables.set('proposalId', body.proposalId);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -333,14 +341,10 @@
             },
             "url": {
               "raw": "{{baseUrl}}/plan/reshape",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                "reshape"
-              ]
-            }
+              "host": ["{{baseUrl}}"],
+              "path": ["plan", "reshape"]
+            },
+            "description": "Returns a proposal (proposalId, changes, proposed items). The proposalId is saved to the `proposalId` collection variable for Accept Reshape."
           }
         },
         {
@@ -354,17 +358,11 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/plan/reshape/1/accept",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                "reshape",
-                "1",
-                "accept"
-              ]
-            }
+              "raw": "{{baseUrl}}/plan/reshape/{{proposalId}}/accept",
+              "host": ["{{baseUrl}}"],
+              "path": ["plan", "reshape", "{{proposalId}}", "accept"]
+            },
+            "description": "Run Reshape Plan first. Proposals are held in memory, so they are lost on server restart."
           }
         },
         {
@@ -379,14 +377,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/plan/items/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "plan",
-                "items",
-                "1"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["plan", "items", "1"]
             }
           }
         }
@@ -407,12 +399,8 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/bookings",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "bookings"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
             }
           }
         },
@@ -441,13 +429,49 @@
             },
             "url": {
               "raw": "{{baseUrl}}/bookings",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "bookings"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["bookings"]
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Memory",
+      "item": [
+        {
+          "name": "Get Memory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/memory",
+              "host": ["{{baseUrl}}"],
+              "path": ["memory"]
+            }
+          }
+        },
+        {
+          "name": "Create Memory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/memory",
+              "host": ["{{baseUrl}}"],
+              "path": ["memory"]
+            },
+            "description": "Generates the AI narration (memory reel) from the guest's booked itinerary. No body."
           }
         }
       ]
@@ -462,12 +486,8 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/catalogue",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "catalogue"
-              ]
+              "host": ["{{baseUrl}}"],
+              "path": ["catalogue"]
             }
           }
         }
@@ -488,11 +508,160 @@
             ],
             "url": {
               "raw": "{{baseUrl}}/events",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events"
+              "host": ["{{baseUrl}}"],
+              "path": ["events"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Video",
+      "description": "AI video generation. Not guest-scoped (no x-guest-id needed).",
+      "item": [
+        {
+          "name": "Get Video Providers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/video/providers",
+              "host": ["{{baseUrl}}"],
+              "path": ["video", "providers"]
+            },
+            "description": "Active provider and list of available providers (no secrets)."
+          }
+        },
+        {
+          "name": "Generate Video (async)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.jobId) {",
+                  "  pm.collectionVariables.set('videoJobId', body.jobId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"A cinematic preview of a luxury resort stay at golden hour\",\n  \"scene\": {\n    \"location\": \"Lakeside luxury resort terrace\",\n    \"environment\": \"palm trees, still water, lantern-lit daybeds\",\n    \"timeOfDay\": \"sunset\",\n    \"lighting\": \"warm golden hour\"\n  },\n  \"options\": {\n    \"duration\": 10,\n    \"aspectRatio\": \"9:16\",\n    \"resolution\": \"720p\",\n    \"style\": \"cinematic photorealism\",\n    \"cameraMovement\": \"slow push-in\"\n  },\n  \"reel\": {\n    \"title\": \"Your Curated Journey\",\n    \"subtitle\": \"Suite 1204\",\n    \"chapters\": [\n      { \"time\": \"15:00\", \"title\": \"Arrival\", \"text\": \"A private welcome in your suite.\", \"category\": \"experience\" },\n      { \"time\": \"18:00\", \"title\": \"Sunset Terrace\", \"text\": \"Champagne by the lake at golden hour.\", \"category\": \"bar\" },\n      { \"time\": \"20:30\", \"title\": \"Tableau\", \"text\": \"A six-course botanical tasting.\", \"category\": \"dining\" }\n    ],\n    \"closingLine\": \"Every hour, prepared for you.\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/video/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["video", "generate"]
+            },
+            "description": "Starts a job and returns 202 with a jobId. The jobId is saved to the `videoJobId` collection variable for Get Video Status. Only `prompt` is required."
+          }
+        },
+        {
+          "name": "Get Video Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/video/status/{{videoJobId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["video", "status", "{{videoJobId}}"]
+            },
+            "description": "Poll until status is 'completed' (videoUrl/thumbnailUrl set) or 'failed'."
+          }
+        },
+        {
+          "name": "Generate Video (sync)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"A cinematic preview of a luxury resort stay at golden hour\",\n  \"options\": {\n    \"duration\": 5,\n    \"aspectRatio\": \"9:16\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/video/generate-sync?timeoutMs=120000",
+              "host": ["{{baseUrl}}"],
+              "path": ["video", "generate-sync"],
+              "query": [
+                {
+                  "key": "timeoutMs",
+                  "value": "120000",
+                  "description": "Max wait in ms (default 120000)"
+                }
+              ]
+            },
+            "description": "Generates and waits for completion (or timeout) before responding."
+          }
+        },
+        {
+          "name": "Preview Video Prompt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"A cinematic preview of a luxury resort stay at golden hour\",\n  \"scene\": {\n    \"timeOfDay\": \"sunset\",\n    \"lighting\": \"warm golden hour\"\n  },\n  \"options\": {\n    \"style\": \"cinematic photorealism\",\n    \"cameraMovement\": \"slow push-in\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/video/preview-prompt",
+              "host": ["{{baseUrl}}"],
+              "path": ["video", "preview-prompt"]
+            },
+            "description": "Returns the built prompt without calling any provider."
+          }
+        },
+        {
+          "name": "Get Video History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/video/history?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["video", "history"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Number of recent jobs (default 20)"
+                }
               ]
             }
           }

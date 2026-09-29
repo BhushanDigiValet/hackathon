@@ -24,6 +24,10 @@ export class Guest {
   @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
 
+  /** URL of the guest's profile image (avatar) */
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  profileImage: string;
+
   /** Timestamp of when the guest record was created */
   @CreateDateColumn()
   createdAt: Date;
@@ -381,6 +385,88 @@ export class MasterTravelCompany {
   isActive: boolean;
 }
 
+/**
+ * A single timeline entry shown on the guest's curated itinerary screen
+ * (e.g. "15:00 · Arrival & In-Suite Welcome Prelude").
+ */
+export interface CuratedItineraryItem {
+  /** Display start time, 24h format (e.g. '18:00') */
+  time: string;
+  /** Machine-readable state (e.g. 'confirmed', 'open', 'pending') */
+  status: string;
+  /** Badge text shown on the card (e.g. 'Confirmed', 'Open Lounge') */
+  statusLabel: string;
+  /** Venue line in caps (e.g. 'Lake of Dreams Terrace') */
+  location: string;
+  /** Optional duration text appended to the venue line (e.g. '90 min') */
+  durationLabel?: string;
+  /** Card headline */
+  title: string;
+  /** Card body copy */
+  description: string;
+  /** Optional hero image for the card */
+  imageUrl?: string;
+  /** Optional caption overlaid on the image (e.g. 'Table 4 · Lakeside View') */
+  imageCaption?: string;
+  /** Italic personalised note explaining why this was chosen */
+  note?: string;
+  /** Small footer text (e.g. 'Suite ready at 14:30', 'Dress Code: Resort Chic') */
+  footerText?: string;
+  /** Footer call-to-action label (e.g. 'Host Details', 'View Menu') */
+  actionLabel?: string;
+}
+
+/**
+ * The guest's current curated itinerary: the cinematic poster/video
+ * preview plus the day's timeline. A guest has at most one at a time.
+ */
+@Entity('guest_itinerary')
+export class GuestItinerary {
+  /** Unique identifier for the itinerary */
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  /** The guest who owns this itinerary (one itinerary per guest) */
+  @Column({ unique: true })
+  guestId: number;
+
+  /** Headline shown on the preview card (e.g. 'Your Curated Journey') */
+  @Column({ type: 'varchar', length: 255 })
+  title: string;
+
+  /** Italic tagline under the section heading */
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  tagline: string;
+
+  /** Suite label shown in the preview badge (e.g. 'Suite 1204') */
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  suiteLabel: string;
+
+  /** The day this itinerary covers */
+  @Column({ type: 'date', nullable: true })
+  itineraryDate: string;
+
+  /** Poster image URL for the cinematic preview card */
+  @Column({ type: 'varchar', length: 1024, nullable: true })
+  posterUrl: string;
+
+  /** Video URL played when the guest taps "Watch" */
+  @Column({ type: 'varchar', length: 1024, nullable: true })
+  videoUrl: string;
+
+  /** Ordered timeline entries (see CuratedItineraryItem) */
+  @Column({ type: 'json', nullable: true })
+  items: CuratedItineraryItem[];
+
+  /** Timestamp of when the itinerary was created */
+  @CreateDateColumn()
+  createdAt: Date;
+
+  /** Timestamp of when the itinerary was last updated */
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
+
 export const ALL_ENTITIES = [
   Guest,
   StayProfile,
@@ -395,4 +481,5 @@ export const ALL_ENTITIES = [
   MasterAtmosphere,
   MasterCadence,
   MasterTravelCompany,
+  GuestItinerary,
 ];

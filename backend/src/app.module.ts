@@ -14,6 +14,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { MemoryModule } from './memory/memory.module';
 import { VideoModule } from './video/video.module';
 import { GuestModule } from './guest/guest.module';
+import { ItineraryModule } from './itinerary/itinerary.module';
 
 @Module({
   imports: [
@@ -48,6 +49,8 @@ import { GuestModule } from './guest/guest.module';
     MemoryModule,
     GuestModule,
     VideoModule,
+    PlanModule,
+    ItineraryModule,
   ],
 })
 export class AppModule {}

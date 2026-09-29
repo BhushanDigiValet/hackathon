@@ -13,8 +13,10 @@ import {
   MasterAtmosphere,
   MasterCadence,
   MasterTravelCompany,
+  GuestItinerary,
 } from '../entities';
 import { seedCatalogue } from './catalogue';
+import { seedItineraries } from './itineraries';
 
 export async function seedAll(
   guestRepo: Repository<Guest>,
@@ -30,6 +32,7 @@ export async function seedAll(
   atmosphereRepo: Repository<MasterAtmosphere>,
   cadenceRepo: Repository<MasterCadence>,
   travelCompanyRepo: Repository<MasterTravelCompany>,
+  itineraryRepo: Repository<GuestItinerary>,
 ) {
   // 1. Clear all tables (disable FK checks temporarily)
   await guestRepo.query('SET FOREIGN_KEY_CHECKS = 0');
@@ -45,6 +48,7 @@ export async function seedAll(
   await atmosphereRepo.clear();
   await cadenceRepo.clear();
   await travelCompanyRepo.clear();
+  await itineraryRepo.clear();
   await guestRepo.query('SET FOREIGN_KEY_CHECKS = 1');
 
   // 2. Seed base Catalogue Items (creates ~30 items)
@@ -74,10 +78,13 @@ export async function seedAll(
   // 3. Seed 50 Guests
   const guestsToCreate = [];
   for (let i = 1; i <= 50; i++) {
+    // Alternate men/women portraits from randomuser.me so each guest gets a distinct avatar
+    const gender = i % 2 === 0 ? 'women' : 'men';
     guestsToCreate.push(
       guestRepo.create({
         name: `Guest ${i}`,
         email: `guest${i}@example.com`,
+        profileImage: `https://randomuser.me/api/portraits/${gender}/${i}.jpg`,
       }),
     );
   }
@@ -232,7 +239,10 @@ export async function seedAll(
   }
   await memoryReelRepo.save(memoryReels);
 
-  // 12. Seed Master Tables (Figma Data)
+  // 12. Seed curated itineraries (poster, video, timeline) for guests 1-6
+  await seedItineraries(itineraryRepo, guests);
+
+  // 13. Seed Master Tables (Figma Data)
   await atmosphereRepo.save([
     { name: 'Relaxed' },
     { name: 'Indulgent' },
@@ -256,8 +266,6 @@ export async function seedAll(
   ]);
 
   console.log(
-    
     '✅ Seed data successfully injected! At least 50 records in each table.',
-  ,
   );
 }

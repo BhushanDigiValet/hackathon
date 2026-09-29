@@ -15,6 +15,7 @@ import {
   MasterAtmosphere,
   MasterCadence,
   MasterTravelCompany,
+  GuestItinerary,
 } from './entities';
 import { seedAll } from './seed/all';
 
@@ -37,6 +38,7 @@ async function bootstrap() {
   const atmosphereRepo = app.get(getRepositoryToken(MasterAtmosphere));
   const cadenceRepo = app.get(getRepositoryToken(MasterCadence));
   const travelCompanyRepo = app.get(getRepositoryToken(MasterTravelCompany));
+  const itineraryRepo = app.get(getRepositoryToken(GuestItinerary));
 
   await seedAll(
     guestRepo,
@@ -52,6 +54,7 @@ async function bootstrap() {
     atmosphereRepo,
     cadenceRepo,
     travelCompanyRepo,
+    itineraryRepo,
   );
 
   const port = process.env.PORT || 3000;

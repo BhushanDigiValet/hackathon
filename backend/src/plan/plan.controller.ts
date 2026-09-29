@@ -1,10 +1,23 @@
-import { Controller, Post, Body, Req, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Req,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { PlanService } from './plan.service';
 import { guestId } from '../common/guest-id';
 
 @Controller('plan')
 export class PlanController {
   constructor(private readonly planService: PlanService) {}
+
+  @Get()
+  async getPlan(@Req() req: any) {
+    return this.planService.toPlanView(guestId(req));
+  }
 
   @Post('generate')
   async generatePlan(@Req() req: any) {
