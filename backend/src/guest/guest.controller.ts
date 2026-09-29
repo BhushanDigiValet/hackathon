@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  HttpCode,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { GuestService } from './guest.service';
 import { Guest } from '../entities';
 
@@ -9,6 +18,24 @@ export class GuestController {
   @Get()
   async findAll() {
     return this.guestService.findAll();
+  }
+
+  /**
+   * Hackathon login: resolves a guest by email. The frontend stores the
+   * returned guestId and sends it as `x-guest-id` on later requests.
+   */
+  @Post('login')
+  @HttpCode(200)
+  async login(@Body() body: { email?: string }) {
+    const email = body?.email?.trim().toLowerCase();
+    if (!email) {
+      throw new BadRequestException('email is required');
+    }
+    const guest = await this.guestService.findByEmail(email);
+    if (!guest) {
+      throw new NotFoundException('No guest found for this email');
+    }
+    return { guestId: guest.id, name: guest.name, email: guest.email };
   }
 
   @Get(':id')
