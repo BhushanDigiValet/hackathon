@@ -1,0 +1,35 @@
+{
+  "mood": "relaxed",
+  "pace": "slow",
+  "travelMode": "solo",
+  "socialOptIn": true,
+  "weights": {
+    "wellness": 0.9,
+    "food": 0.85,
+    "nightlife": 0.6,
+    "exploration": 0.3,
+    "luxury": 0.95,
+    "energy": 0.3
+  },
+  "tags": [
+    "spa",
+    "wellness",
+    "fine_dining",
+    "sunset",
+    "social",
+    "luxury",
+    "quiet",
+    "cocktails"
+  ],
+  "constraints": {
+    "partySize": 1,
+    "wakeAfter": "09:00",
+    "budgetTier": 4,
+    "dietary": [],
+    "notes": "Desires deep relaxation, luxury pampering, and a social finish."
+  },
+  "summary": "You wanted to slow down, let the crazy months melt away, and savor an unhurried, luxurious day.",
+  "wakeAfter": "09:00",
+  "budgetTier": 4,
+  "rawPrompt": "I've had a crazy few months. I want this trip to feel luxurious and relaxing. Give me great food, a spa, a beautiful sunset and maybe something social tonight. I don't want to plan everything myself."
+}

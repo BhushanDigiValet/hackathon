@@ -1,0 +1,31 @@
+{
+  "mood": "social",
+  "pace": "balanced",
+  "travelMode": "solo",
+  "socialOptIn": true,
+  "weights": {
+    "wellness": 0.3,
+    "food": 0.85,
+    "nightlife": 0.65,
+    "exploration": 0.5,
+    "luxury": 0.7,
+    "energy": 0.6
+  },
+  "tags": [
+    "social",
+    "fine_dining",
+    "cocktails",
+    "lively"
+  ],
+  "constraints": {
+    "partySize": 1,
+    "wakeAfter": "09:00",
+    "budgetTier": 3,
+    "dietary": [],
+    "notes": "Business traveler with one open evening."
+  },
+  "summary": "A welcoming evening designed to unwind from business, enjoy sublime food, and encounter friendly conversation.",
+  "wakeAfter": "09:00",
+  "budgetTier": 3,
+  "rawPrompt": "Traveling alone for work, one free evening, want good food and maybe meet people."
+}

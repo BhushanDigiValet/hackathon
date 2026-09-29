@@ -1,0 +1,33 @@
+{
+  "mood": "adventurous",
+  "pace": "packed",
+  "travelMode": "friends",
+  "socialOptIn": true,
+  "weights": {
+    "wellness": 0.2,
+    "food": 0.7,
+    "nightlife": 0.95,
+    "exploration": 0.6,
+    "luxury": 0.7,
+    "energy": 0.95
+  },
+  "tags": [
+    "golf",
+    "nightlife",
+    "cocktails",
+    "social",
+    "lively",
+    "adventure"
+  ],
+  "constraints": {
+    "partySize": 4,
+    "wakeAfter": "09:00",
+    "budgetTier": 3,
+    "dietary": [],
+    "notes": "High energy bachelor party."
+  },
+  "summary": "A high-energy weekend pairing morning golf on championship greens with buzzing dining and premier nightlife.",
+  "wakeAfter": "09:00",
+  "budgetTier": 3,
+  "rawPrompt": "Bachelor weekend with 4 friends, we want energy, golf and a big night out."
+}
