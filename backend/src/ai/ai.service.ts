@@ -745,8 +745,13 @@ export class AiService {
     user: string,
     options?: LlmCallOptions | number,
   ): Promise<any | null> {
+    const disableLlm = this.configService.get<string>('DISABLE_LLM');
+    if (disableLlm === 'true' || disableLlm === '1' || disableLlm === 'on') {
+      return null;
+    }
+
     const apiKey = this.configService.get<string>('ANTHROPIC_API_KEY');
-    if (!apiKey) {
+    if (!apiKey || apiKey === 'disabled' || apiKey === 'off' || !apiKey.trim()) {
       return null;
     }
 
