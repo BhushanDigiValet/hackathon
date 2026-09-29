@@ -145,8 +145,8 @@ export class AiService {
       );
 
       // 3. Light shape check
+      if (!parsed) return null;
       if (
-        !parsed ||
         typeof parsed !== 'object' ||
         !parsed.mood ||
         !parsed.pace ||
@@ -350,8 +350,8 @@ export class AiService {
       );
 
       // 6. Light shape check
+      if (!parsed) return null;
       if (
-        !parsed ||
         typeof parsed !== 'object' ||
         typeof parsed.planSummary !== 'string' ||
         !Array.isArray(parsed.items)
@@ -519,10 +519,15 @@ export class AiService {
         profileMood: profile?.mood,
         lockedIds: lockedItems.map((l) => l.catalogueItemId).sort(),
       };
-      const cached = await this.demoCache.get<ReshapedPlanResult>(
+      let cached = await this.demoCache.get<ReshapedPlanResult>(
         'reshapePlan',
         cacheKey,
       );
+      if (!cached) {
+        cached = await this.demoCache.get<ReshapedPlanResult>('reshapePlan', {
+          message: message.trim(),
+        });
+      }
       if (cached) {
         console.log(
           `[ai] reshape ${((Date.now() - startTime) / 1000).toFixed(1)}s (cached)`,
@@ -544,8 +549,8 @@ export class AiService {
       );
 
       // 6. Light shape check
+      if (!parsed) return null;
       if (
-        !parsed ||
         typeof parsed !== 'object' ||
         !Array.isArray(parsed.changes) ||
         !Array.isArray(parsed.items)
@@ -691,8 +696,8 @@ export class AiService {
       );
 
       // 4. Light shape check
+      if (!parsed) return null;
       if (
-        !parsed ||
         typeof parsed !== 'object' ||
         typeof parsed.title !== 'string' ||
         !Array.isArray(parsed.chapters) ||
@@ -775,8 +780,18 @@ export class AiService {
     user: string,
     options?: LlmCallOptions | number,
   ): Promise<any | null> {
+    const disableLlm = this.configService.get<string>('DISABLE_LLM');
+    if (disableLlm === 'true' || disableLlm === '1' || disableLlm === 'on') {
+      return null;
+    }
+
     const apiKey = this.configService.get<string>('ANTHROPIC_API_KEY');
-    if (!apiKey) {
+    if (
+      !apiKey ||
+      apiKey === 'disabled' ||
+      apiKey === 'off' ||
+      !apiKey.trim()
+    ) {
       return null;
     }
 

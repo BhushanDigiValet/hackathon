@@ -303,6 +303,7 @@ export function seedDemoCacheData() {
     ],
   };
   demoCache.set('reshapePlan', keyA, dataA);
+  demoCache.set('reshapePlan', { message: msgA }, dataA);
 
   // Reshape b: "I don't want to wake up before 10."
   const msgB = "I don't want to wake up before 10.";
@@ -343,6 +344,7 @@ export function seedDemoCacheData() {
     ],
   };
   demoCache.set('reshapePlan', keyB, dataB);
+  demoCache.set('reshapePlan', { message: msgB }, dataB);
 
   // Reshape c: "Replace the expensive dinner with something more casual."
   const msgC = 'Replace the expensive dinner with something more casual.';
@@ -384,6 +386,7 @@ export function seedDemoCacheData() {
     ],
   };
   demoCache.set('reshapePlan', keyC, dataC);
+  demoCache.set('reshapePlan', { message: msgC }, dataC);
 
   // Reshape d: "Make it more adventurous."
   const msgD = 'Make it more adventurous.';
@@ -431,6 +434,7 @@ export function seedDemoCacheData() {
     ],
   };
   demoCache.set('reshapePlan', keyD, dataD);
+  demoCache.set('reshapePlan', { message: msgD }, dataD);
 
   // Reshape e: "Cancel the sunset."
   const msgE = 'Cancel the sunset.';
@@ -468,6 +472,7 @@ export function seedDemoCacheData() {
     ],
   };
   demoCache.set('reshapePlan', keyE, dataE);
+  demoCache.set('reshapePlan', { message: msgE }, dataE);
 
   // =========================================================================
   // 4. NARRATE MEMORY TEST CASE (Hero Day with 4 confirmed + 1 shared)

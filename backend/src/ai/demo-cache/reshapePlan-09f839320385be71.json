@@ -1,0 +1,27 @@
+{
+  "understood": "Your sunset reservation at Golden Hour Terrace Bar is already confirmed, so we kept it safely in place.",
+  "changes": [
+    "Kept: Golden Hour Terrace Bar (confirmed reservation cannot be removed conversationally)"
+  ],
+  "profilePatch": {},
+  "items": [
+    {
+      "catalogueItemId": 12,
+      "startAt": "10:30",
+      "endAt": "12:00",
+      "why": "Your morning massage continues as planned."
+    },
+    {
+      "catalogueItemId": 4,
+      "startAt": "19:30",
+      "endAt": "21:30",
+      "why": "Your reserved dining table remains ready for your evening."
+    },
+    {
+      "catalogueItemId": 22,
+      "startAt": "22:00",
+      "endAt": "23:30",
+      "why": "Late night live music concludes your night as arranged."
+    }
+  ]
+}

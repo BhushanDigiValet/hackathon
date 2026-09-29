@@ -78,7 +78,7 @@ export class PlanService {
     const pace = prefs.pace || 'balanced';
     const wakeAfter = prefs.wakeAfter || '08:00';
 
-    let slots = [
+    const slots = [
       { time: '10:00', type: 'breakfast' }, // mapped to dining early
       { time: '11:30', type: 'spa' },
       { time: '14:00', type: 'pool' },
@@ -234,8 +234,8 @@ export class PlanService {
 
     if (!result) {
       // Fallback
-      let prefs = { ...profile.preferences };
-      let weights = prefs.weights || {};
+      const prefs = { ...profile.preferences };
+      const weights = prefs.weights || {};
       const tags = new Set(prefs.tags || []);
       const changes = [];
       const msg = message.toLowerCase();

@@ -256,6 +256,8 @@ export async function seedAll(
   ]);
 
   console.log(
+    
     '✅ Seed data successfully injected! At least 50 records in each table.',
+  ,
   );
 }
