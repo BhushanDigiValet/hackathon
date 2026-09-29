@@ -13,15 +13,15 @@ export class PlanController {
 
   @Post('createItenaryFromLlm')
   async createItineraryFromLlm(
-    @Req() req: any,
     @Body()
     body: {
+      guestId: number;
       defaultPrompt: string;
       travelCompanyId: number;
       atmosphereMoodIds: number[];
     },
   ) {
-    return this.planService.createItineraryFromLlm(guestId(req), body);
+    return this.planService.createItineraryFromLlm(body.guestId, body);
   }
 
   @Post('reshape')
