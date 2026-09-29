@@ -182,34 +182,62 @@ export class PlanService {
       (c) => c.id === body.travelCompanyId,
     );
 
-    // Create a robust mock profile for the LLM to use
-    const fakeProfile = {
+    const moodText = [body.defaultPrompt, ...selectedMoods]
+      .join(' ')
+      .toLowerCase();
+    const pace = /relax|calm|quiet|unwind|slow|serene/.test(moodText)
+      ? 'slow'
+      : /party|lively|celebrat|energ|night|social/.test(moodText)
+        ? 'packed'
+        : 'balanced';
+    const wakeAfter = '08:00';
+    const tags = [...selectedMoods, selectedCompany?.name].filter(Boolean);
+
+    // mood/pace/rawPrompt sit at the top level because composePlan builds its
+    // cache key from them; preferences/constraints feed the prompt and fallback.
+    const profile = {
+      mood: selectedMoods[0] || null,
+      moods: selectedMoods,
+      travelCompany: selectedCompany?.name || null,
+      pace,
+      rawPrompt: body.defaultPrompt,
       preferences: {
         rawPrompt: body.defaultPrompt,
-        tags: [...selectedMoods, selectedCompany?.name].filter(Boolean),
-        budgetTier: 3, // default to luxurious if they ask for it
+        tags,
+        budgetTier: 3,
+        pace,
+        wakeAfter,
       },
-      constraints: {
-        wakeAfter: '08:00',
-        pace: 'relaxed',
-      },
-      socialOptIn: true
+      constraints: { wakeAfter, pace, budgetTier: 3 },
+      socialOptIn: pace === 'packed',
     };
 
+    // Catalogue comes straight from the catalogue_item table on every call.
+    // Upgrade rows are not sent on their own: composePlan attaches them to
+    // their parent item as `upgrades`.
     const allCatalogue = await this.catalogueRepo.find();
+    const candidates = allCatalogue.filter((c) => !c.details?.upsellOfId);
 
-    // Call the LLM directly, bypassing candidate scoring and StayPlanItem creation
-    const llmPlan = await this.aiService.composePlan(fakeProfile, allCatalogue, []);
+    const llmPlan = await this.aiService.composePlan(profile, candidates, []);
+    const plan: any[] =
+      llmPlan && llmPlan.length > 0
+        ? llmPlan
+        : await this.fallbackCompose(
+            profile,
+            await this.scoreCandidates(profile, allCatalogue),
+            [],
+            allCatalogue,
+          );
 
-    // If the LLM failed, fallback to an empty array so we don't crash
-    const safePlan = llmPlan || [];
-
-    const curatedItems = safePlan.map((p) => {
+    const curatedItems = plan.map((p) => {
       const cat = allCatalogue.find((c) => c.id === p.catalogueItemId);
+      const upsell = p.upsellItemId
+        ? allCatalogue.find((c) => c.id === p.upsellItemId)
+        : null;
       const duration = cat?.details?.durationMin
         ? `${cat.details.durationMin} min`
         : '';
-        
+
       return {
         time: p.startAt || 'TBD',
         status: 'confirmed',
@@ -220,18 +248,27 @@ export class PlanService {
         description: cat?.description || '',
         imageUrl: cat?.details?.imageUrl || '',
         note: p.why || '',
+        footerText: upsell ? `Upgrade: ${upsell.name}` : undefined,
       };
     });
 
     const guestItinerary = await this.itineraryService.upsertForGuest(guestId, {
       title: 'Your Curated Journey',
-      tagline: 'Arrive slowly, breathe out. Every hour prepared for your arrival.',
+      tagline:
+        llmPlan?.planSummary ||
+        'Arrive slowly, breathe out. Every hour prepared for your arrival.',
       suiteLabel: 'Suite 1204',
       itineraryDate: '2026-10-02',
       posterUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80&auto=format&fit=crop',
       videoUrl: 'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4',
       items: curatedItems,
     });
+
+    await this.eventsService.emit(
+      guestId,
+      'itinerary_generated',
+      'Itinerary Generated',
+    );
 
     return guestItinerary;
   }

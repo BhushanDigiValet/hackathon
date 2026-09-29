@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process';
 import { Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -86,6 +87,15 @@ function minutesToTime(mins: number): string {
 
 function addMinutesToTime(timeStr: string, durationMin: number): string {
   return minutesToTime(timeToMinutes(timeStr) + durationMin);
+}
+
+/** Pulls the first {...} block out of model text and parses it. */
+function extractJson(text: string): any | null {
+  if (!text) return null;
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start === -1 || end === -1) return null;
+  return JSON.parse(text.substring(start, end + 1));
 }
 
 function timesOverlap(
@@ -785,6 +795,19 @@ export class AiService {
       return null;
     }
 
+    const model =
+      this.configService.get<string>('LLM_MODEL') || 'claude-sonnet-5-5';
+
+    const provider = (
+      this.configService.get<string>('LLM_PROVIDER') || 'cli'
+    ).toLowerCase();
+    if (provider === 'cli') {
+      const cliTimeoutMs =
+        Number(this.configService.get<string>('CLAUDE_CLI_TIMEOUT_MS')) ||
+        90000;
+      return this.callClaudeCli(system, user, model, cliTimeoutMs);
+    }
+
     const apiKey = this.configService.get<string>('ANTHROPIC_API_KEY');
     if (
       !apiKey ||
@@ -804,8 +827,6 @@ export class AiService {
     const temperature =
       typeof options === 'object' ? options?.temperature : undefined;
 
-    const model =
-      this.configService.get<string>('LLM_MODEL') || 'claude-sonnet-5-5';
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -844,19 +865,84 @@ export class AiService {
         ?.filter((c: any) => c.type === 'text')
         .map((c: any) => c.text)
         .join('\n');
-      if (!text) return null;
-
-      const start = text.indexOf('{');
-      const end = text.lastIndexOf('}');
-      if (start === -1 || end === -1) return null;
-
-      const jsonStr = text.substring(start, end + 1);
-      return JSON.parse(jsonStr);
+      return extractJson(text);
     } catch (e: any) {
       console.warn('[ai] callLlm failed', e?.message || e);
       return null;
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  /**
+   * Runs the local Claude Code CLI in print mode (`claude -p`) and parses the
+   * JSON reply. Uses the CLI's own login, so no ANTHROPIC_API_KEY is needed.
+   * The user message goes in on stdin because the catalogue is too long for argv.
+   */
+  private callClaudeCli(
+    system: string,
+    user: string,
+    model: string,
+    timeoutMs: number,
+  ): Promise<any | null> {
+    const bin = this.configService.get<string>('CLAUDE_CLI_PATH') || 'claude';
+    const args = [
+      '-p',
+      '--output-format',
+      'json',
+      '--model',
+      model,
+      '--system-prompt',
+      system,
+    ];
+
+    return new Promise((resolve) => {
+      let stdout = '';
+      let stderr = '';
+      let done = false;
+      const finish = (value: any | null) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timeoutId);
+        resolve(value);
+      };
+
+      const child = spawn(bin, args, { stdio: ['pipe', 'pipe', 'pipe'] });
+      const timeoutId = setTimeout(() => {
+        console.warn(`[ai] callClaudeCli timed out after ${timeoutMs}ms`);
+        child.kill('SIGKILL');
+        finish(null);
+      }, timeoutMs);
+
+      child.stdout.on('data', (d) => (stdout += d));
+      child.stderr.on('data', (d) => (stderr += d));
+      child.on('error', (e) => {
+        console.warn('[ai] callClaudeCli failed to start', e?.message || e);
+        finish(null);
+      });
+      child.on('close', (code) => {
+        if (code !== 0) {
+          console.warn(
+            `[ai] callClaudeCli exited ${code}: ${stderr.slice(0, 500)}`,
+          );
+          return finish(null);
+        }
+        try {
+          // --output-format json wraps the reply: { type, is_error, result, ... }
+          const envelope = JSON.parse(stdout);
+          if (envelope.is_error) {
+            console.warn('[ai] callClaudeCli error', envelope.result);
+            return finish(null);
+          }
+          finish(extractJson(envelope.result));
+        } catch (e: any) {
+          console.warn('[ai] callClaudeCli bad output', e?.message || e);
+          finish(null);
+        }
+      });
+
+      child.stdin.on('error', () => undefined);
+      child.stdin.end(user);
+    });
   }
 }
