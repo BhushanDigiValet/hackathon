@@ -70,7 +70,7 @@ describe('Video Providers and Factory', () => {
   });
 
   describe('VideoProviderFactory', () => {
-    it('should fallback to mock provider when no API key is provided', () => {
+    it('should fallback to local reel provider when no API key is provided', () => {
       const configServiceMock = {
         get: jest.fn().mockImplementation((key: string) => {
           if (key === 'VIDEO_PROVIDER') return 'luma';
@@ -81,7 +81,19 @@ describe('Video Providers and Factory', () => {
 
       const factory = new VideoProviderFactory(configServiceMock);
       const provider = factory.getProvider();
-      expect(provider.name).toBe('mock');
+      expect(provider.name).toBe('local');
+    });
+
+    it('should still resolve mock provider when explicitly configured', () => {
+      const configServiceMock = {
+        get: jest.fn().mockImplementation((key: string) => {
+          if (key === 'VIDEO_PROVIDER') return 'mock';
+          return undefined;
+        }),
+      } as unknown as ConfigService;
+
+      const factory = new VideoProviderFactory(configServiceMock);
+      expect(factory.getProvider().name).toBe('mock');
     });
 
     it('should resolve LumaProvider when key is present', () => {

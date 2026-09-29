@@ -6,6 +6,8 @@ import { RunwayProvider } from './runway.provider';
 import { PikaProvider } from './pika.provider';
 import { MockVideoProvider } from './mock.provider';
 import { GoogleVeoProvider } from './google-veo.provider';
+import { LocalReelProvider } from './local-reel.provider';
+import { join } from 'path';
 
 @Injectable()
 export class VideoProviderFactory {
@@ -24,6 +26,18 @@ export class VideoProviderFactory {
     this.registerProvider('gemini', (key) => new GoogleVeoProvider(key));
     this.registerProvider('veo', (key) => new GoogleVeoProvider(key));
     this.registerProvider('mock', () => new MockVideoProvider());
+    this.registerProvider(
+      'local',
+      () =>
+        new LocalReelProvider(
+          // Same folder ServeStaticModule serves (backend/public), from src/ or dist/.
+          join(__dirname, '..', '..', '..', 'public'),
+          (
+            this.configService.get<string>('VIDEO_PUBLIC_BASE_URL') ||
+            `http://localhost:${this.configService.get<string>('PORT') || 3000}`
+          ).replace(/\/+$/, ''),
+        ),
+    );
   }
 
   /**
@@ -65,14 +79,16 @@ export class VideoProviderFactory {
       process.env.VIDEO_PROVIDER_BASE_URL ||
       undefined;
 
-    // If provider is explicitly specified as mock or if no API key is provided, fallback to mock provider gracefully
-    let targetProviderName = configuredProvider || (apiKey ? 'luma' : 'mock');
+    // Keyless providers ('local', 'mock') need no API key. Any other provider without a key
+    // falls back to 'local', which renders a real reel from itinerary data.
+    const keyless = new Set(['local', 'mock']);
+    let targetProviderName = configuredProvider || (apiKey ? 'luma' : 'local');
 
-    if (!apiKey && targetProviderName !== 'mock') {
+    if (!apiKey && !keyless.has(targetProviderName)) {
       this.logger.warn(
-        `VIDEO_PROVIDER_API_KEY is not configured for provider '${targetProviderName}'. Falling back to 'mock' provider for safe development.`,
+        `VIDEO_PROVIDER_API_KEY is not configured for provider '${targetProviderName}'. Falling back to 'local' reel renderer.`,
       );
-      targetProviderName = 'mock';
+      targetProviderName = 'local';
     }
 
     const factoryFn = this.registry.get(targetProviderName);

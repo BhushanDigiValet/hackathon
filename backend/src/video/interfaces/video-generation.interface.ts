@@ -41,6 +41,31 @@ export interface VideoGenerationOptions {
 }
 
 /**
+ * One scene of a structured itinerary reel (e.g. a narrated memory chapter).
+ */
+export interface ReelChapter {
+  /** Display time, e.g. '10:30' */
+  time?: string;
+  /** Short chapter title */
+  title?: string;
+  /** One or two sentences of narration */
+  text: string;
+  /** Catalogue category group (spa, dining, bar, nightlife, experience, ...) */
+  category?: string;
+}
+
+/**
+ * Structured storyboard for providers that render from itinerary data
+ * rather than a free-text prompt (used by the keyless 'local' provider).
+ */
+export interface ReelSpec {
+  title: string;
+  subtitle?: string;
+  chapters: ReelChapter[];
+  closingLine?: string;
+}
+
+/**
  * Main request contract accepted by the Video Generation Service.
  */
 export interface GenerateVideoRequest {
@@ -52,6 +77,8 @@ export interface GenerateVideoRequest {
   scene?: SceneDetails;
   /** Provider-independent video options */
   options?: VideoGenerationOptions;
+  /** Optional structured storyboard; prompt-only providers ignore it */
+  reel?: ReelSpec;
 }
 
 /**
@@ -103,11 +130,13 @@ export interface IVideoProvider {
    * Dispatches a video generation task to the external API.
    * @param builtPrompt The formatted prompt produced by PromptBuilder.
    * @param options Provider-independent video generation options.
+   * @param request The full validated request, for providers that need structured data.
    * @returns Initial job status and job identifier from the provider.
    */
   generateVideo(
     builtPrompt: string,
     options?: VideoGenerationOptions,
+    request?: GenerateVideoRequest,
   ): Promise<{
     jobId: string;
     status: VideoJobStatus;

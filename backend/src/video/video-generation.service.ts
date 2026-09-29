@@ -55,7 +55,11 @@ export class VideoGenerationService {
     try {
       // 4. Send request to external provider with retry for transient network issues
       const providerResponse = await this.executeWithRetry(() =>
-        provider.generateVideo(builtPrompt, validatedRequest.options),
+        provider.generateVideo(
+          builtPrompt,
+          validatedRequest.options,
+          validatedRequest,
+        ),
       );
 
       const jobRecord: VideoGenerationResult = {

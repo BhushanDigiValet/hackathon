@@ -191,6 +191,33 @@ export class VideoRequestValidator {
       }
     }
 
+    // 5. Validate reel storyboard (if provided)
+    if (request.reel !== undefined && request.reel !== null) {
+      const reel = request.reel;
+      if (typeof reel !== 'object' || Array.isArray(reel)) {
+        throw new BadRequestException('"reel" must be an object');
+      }
+      if (typeof reel.title !== 'string' || reel.title.trim().length === 0) {
+        throw new BadRequestException('"reel.title" must be a non-empty string');
+      }
+      if (
+        !Array.isArray(reel.chapters) ||
+        reel.chapters.length === 0 ||
+        reel.chapters.length > 20
+      ) {
+        throw new BadRequestException(
+          '"reel.chapters" must be an array of 1 to 20 chapters',
+        );
+      }
+      reel.chapters.forEach((ch: any, i: number) => {
+        if (!ch || typeof ch !== 'object' || typeof ch.text !== 'string') {
+          throw new BadRequestException(
+            `"reel.chapters[${i}].text" must be a string`,
+          );
+        }
+      });
+    }
+
     return request as GenerateVideoRequest;
   }
 }

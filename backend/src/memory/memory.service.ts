@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import {
@@ -8,9 +8,18 @@ import {
   StayProfile,
 } from '../entities';
 import { AiService } from '../ai/ai.service';
+import { VideoGenerationService } from '../video/video-generation.service';
+import { VideoGenerationResult } from '../video/interfaces/video-generation.interface';
+
+type ReelVideo = Pick<
+  VideoGenerationResult,
+  'jobId' | 'status' | 'provider' | 'videoUrl' | 'thumbnailUrl' | 'error'
+>;
 
 @Injectable()
 export class MemoryService {
+  private readonly logger = new Logger(MemoryService.name);
+
   constructor(
     @InjectRepository(MemoryReel)
     private readonly memoryRepo: Repository<MemoryReel>,
@@ -21,6 +30,7 @@ export class MemoryService {
     @InjectRepository(StayProfile)
     private readonly profileRepo: Repository<StayProfile>,
     private readonly aiService: AiService,
+    private readonly videoService: VideoGenerationService,
   ) {}
 
   async narrate(guestId: number) {
@@ -61,6 +71,7 @@ export class MemoryService {
         return {
           time: t.details?.startAt,
           text,
+          category: group,
         };
       });
 
@@ -76,19 +87,74 @@ export class MemoryService {
     if (!reel) {
       reel = this.memoryRepo.create({ guestId });
     }
+    const video = await this.startReelVideo(result);
     reel.narration = JSON.stringify(result);
-    reel.mediaUrls = result.chapters; // simple mock
+    reel.mediaUrls = { chapters: result.chapters, video };
     await this.memoryRepo.save(reel);
 
-    return result;
+    return { ...result, video };
   }
 
   async getMemory(guestId: number) {
     const reel = await this.memoryRepo.findOne({ where: { guestId } });
     if (!reel) return null;
+
+    // Refresh a reel video that was still rendering when narrated.
+    const video: ReelVideo | undefined = reel.mediaUrls?.video;
+    if (
+      video?.jobId &&
+      (video.status === 'queued' || video.status === 'processing')
+    ) {
+      try {
+        const latest = await this.videoService.getVideoStatus(video.jobId);
+        reel.mediaUrls = { ...reel.mediaUrls, video: this.toReelVideo(latest) };
+        await this.memoryRepo.save(reel);
+      } catch (err: any) {
+        this.logger.warn(`Reel video status check failed: ${err.message}`);
+      }
+    }
+
     return {
       ...reel,
       narration: reel.narration ? JSON.parse(reel.narration) : null,
+    };
+  }
+
+  /** Kicks off the keepsake video; never blocks or fails the narration. */
+  private async startReelVideo(result: {
+    title: string;
+    chapters: any[];
+    closingLine?: string;
+  }): Promise<ReelVideo | null> {
+    if (!result.chapters?.length) return null;
+    try {
+      const job = await this.videoService.generateVideo({
+        prompt:
+          `A keepsake reel of a luxury resort stay: ${result.title}. ${result.chapters
+            .map((c) => c.text)
+            .join(' ')}`.slice(0, 2900),
+        reel: {
+          title: result.title,
+          chapters: result.chapters.slice(0, 20),
+          closingLine: result.closingLine,
+        },
+        options: { aspectRatio: '16:9', style: 'warm cinematic' },
+      });
+      return this.toReelVideo(job);
+    } catch (err: any) {
+      this.logger.warn(`Reel video generation failed: ${err.message}`);
+      return null;
+    }
+  }
+
+  private toReelVideo(job: VideoGenerationResult): ReelVideo {
+    return {
+      jobId: job.jobId,
+      status: job.status,
+      provider: job.provider,
+      videoUrl: job.videoUrl,
+      thumbnailUrl: job.thumbnailUrl,
+      error: job.error,
     };
   }
 }
