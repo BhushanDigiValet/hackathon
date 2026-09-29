@@ -1,0 +1,112 @@
+$ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+$ring-length: 289; // 2 * PI * 46
+$check-length: 54;
+
+:host {
+  --duration: 2600ms;
+}
+
+.backdrop {
+  animation: fade-in 320ms ease-out both;
+}
+
+.bloom {
+  background: radial-gradient(circle, rgba(201, 164, 92, 0.35) 0%, rgba(201, 164, 92, 0.08) 45%, transparent 70%);
+  animation: bloom 1400ms $ease-out 120ms both;
+}
+
+.ring {
+  stroke-dasharray: $ring-length;
+  stroke-dashoffset: $ring-length;
+  animation: draw 900ms $ease-out 200ms forwards;
+}
+
+.check {
+  stroke-dasharray: $check-length;
+  stroke-dashoffset: $check-length;
+  animation: draw 420ms $ease-out 950ms forwards;
+}
+
+.glint {
+  opacity: 0;
+  transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0);
+  animation: glint 1100ms ease-in-out both;
+}
+
+.bubble {
+  opacity: 0;
+  background: radial-gradient(circle at 35% 35%, #ffdea4, rgba(201, 164, 92, 0.55) 60%, transparent 72%);
+  animation-name: rise;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  animation-fill-mode: both;
+}
+
+.reveal {
+  animation: reveal 700ms $ease-out both;
+
+  &-1 { animation-delay: 700ms; }
+  &-2 { animation-delay: 820ms; }
+  &-3 { animation-delay: 940ms; }
+  &-4 { animation-delay: 1100ms; }
+}
+
+.progress {
+  transform-origin: left;
+  animation: progress calc(var(--duration) - 1100ms) linear 1100ms both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes bloom {
+  from { opacity: 0; transform: scale(0.4); }
+  60% { opacity: 1; }
+  to { opacity: 0.75; transform: scale(1); }
+}
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes glint {
+  0% { opacity: 0; transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0) rotate(0deg); }
+  45% { opacity: 1; transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1) rotate(45deg); }
+  100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(0.2) rotate(90deg); }
+}
+
+@keyframes rise {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); }
+  15% { opacity: 0.9; }
+  100% { opacity: 0; transform: translate3d(var(--drift), -70vh, 0); }
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble,
+  .glint,
+  .bloom {
+    display: none;
+  }
+
+  .ring,
+  .check {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .reveal,
+  .backdrop,
+  .progress {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}

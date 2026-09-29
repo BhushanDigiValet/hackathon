@@ -1,0 +1,84 @@
+<div class="backdrop fixed inset-0 z-[70] flex items-center justify-center overflow-hidden bg-surface-container-lowest/85 backdrop-blur-md">
+  <!-- Warm bloom behind the ring -->
+  <div class="bloom absolute w-[340px] h-[340px] rounded-full pointer-events-none"></div>
+
+  <!-- Champagne bubbles -->
+  @for (b of bubbles; track $index) {
+    <span
+      class="bubble absolute bottom-[-12px] rounded-full pointer-events-none"
+      [style.left.%]="b.left"
+      [style.width.px]="b.size"
+      [style.height.px]="b.size"
+      [style.animation-delay.s]="b.delay"
+      [style.animation-duration.s]="b.duration"
+      [style.--drift]="b.drift + 'px'"
+    ></span>
+  }
+
+  <div class="content relative flex flex-col items-center gap-6 px-8 text-center max-w-[360px]">
+    <div class="relative w-[128px] h-[128px]">
+      <!-- Glints -->
+      @for (g of glints; track $index) {
+        <svg
+          class="glint absolute left-1/2 top-1/2 text-primary-fixed"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          [style.width.px]="g.size"
+          [style.height.px]="g.size"
+          [style.--x]="g.x + 'px'"
+          [style.--y]="g.y + 'px'"
+          [style.animation-delay.s]="g.delay"
+        >
+          <path fill="currentColor" d="M12 0c.6 6.2 5.8 11.4 12 12-6.2.6-11.4 5.8-12 12-.6-6.2-5.8-11.4-12-12C6.2 11.4 11.4 6.2 12 0z" />
+        </svg>
+      }
+
+      <!-- Ring + check -->
+      <svg class="absolute inset-0" viewBox="0 0 128 128" aria-hidden="true">
+        <defs>
+          <linearGradient id="celebration-gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffdea4" />
+            <stop offset="55%" stop-color="#c9a45c" />
+            <stop offset="100%" stop-color="#8f6f2e" />
+          </linearGradient>
+        </defs>
+        <circle cx="64" cy="64" r="58" fill="none" stroke="rgba(201,164,92,0.14)" stroke-width="1" />
+        <circle
+          class="ring"
+          cx="64"
+          cy="64"
+          r="46"
+          fill="none"
+          stroke="url(#celebration-gold)"
+          stroke-width="2"
+          stroke-linecap="round"
+          transform="rotate(-90 64 64)"
+        />
+        <path
+          class="check"
+          d="M46 65 l12 12 l24 -26"
+          fill="none"
+          stroke="url(#celebration-gold)"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <span class="reveal reveal-1 font-label-sm text-label-sm uppercase tracking-[0.3em] text-primary">You’re in</span>
+      <h2 class="reveal reveal-2 font-headline-lg text-headline-lg text-on-surface italic leading-tight">{{ title() }}</h2>
+      <p class="reveal reveal-3 font-body-md text-body-md text-on-surface-variant">
+        Confirmed with {{ suiteLabel() }}@if (whenLabel()) { · {{ whenLabel() }}}
+      </p>
+    </div>
+
+    <div class="reveal reveal-4 flex flex-col items-center gap-2 w-40">
+      <span class="font-label-sm text-label-sm text-secondary tracking-wide">Adding to your itinerary</span>
+      <span class="w-full h-px bg-primary/15 overflow-hidden">
+        <span class="progress block h-full bg-primary-container"></span>
+      </span>
+    </div>
+  </div>
+</div>

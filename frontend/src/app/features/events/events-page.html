@@ -8,149 +8,302 @@
           Live Property Circles · {{ guest()?.suite }} Privilege
         </span>
       </div>
-      <div class="flex shrink-0 items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full">
-        <span class="material-symbols-outlined icon-fill text-[14px] text-primary">radar</span>
-        <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">{{ remaining() }} near you</span>
-      </div>
+      @if (loadState() === 'loaded') {
+        <div class="flex shrink-0 items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full">
+          <span class="material-symbols-outlined icon-fill text-[14px] text-primary">radar</span>
+          <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">{{ cards().length }} near you</span>
+        </div>
+      }
     </div>
     <div class="flex flex-col mt-space-xs">
       <h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Guest &amp; Host Invitations</h1>
       <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-        Discreet gatherings curated by fellow patrons tonight. Tap to review salon company and accept your place.
+        Discreet gatherings curated by fellow patrons tonight. Swipe to review salon company and accept your place.
       </p>
     </div>
   </div>
 
   <!-- Card stack -->
-  <div class="relative w-full aspect-[3/4.4] min-h-[500px] flex items-center justify-center mb-space-md">
-    @if (afterNext(); as card) {
-      <div
-        class="absolute inset-x-5 top-5 bottom-0 rounded-2xl bg-surface-container-lowest overflow-hidden shadow-2xl scale-[0.91] translate-y-4 opacity-40 transition-all duration-300"
-      >
-        <img alt="" class="w-full h-full object-cover brightness-50" [src]="card.imageUrl" />
-        <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/70 to-transparent"></div>
-      </div>
-    }
-
-    @if (next(); as card) {
-      <div
-        class="absolute inset-x-2.5 top-2.5 bottom-0 rounded-2xl bg-surface-container-low overflow-hidden shadow-2xl scale-[0.96] translate-y-2 opacity-80 transition-all duration-300"
-      >
-        <img alt="" class="w-full h-full object-cover brightness-70" [src]="card.imageUrl" />
-        <div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/50 to-transparent"></div>
-        <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-          <span class="px-2.5 py-1 rounded-full bg-surface-container-highest/90 text-secondary font-label-sm text-label-sm backdrop-blur-md truncate">
-            {{ card.startsAtLabel }} · {{ card.venue }}
-          </span>
-          <span class="w-2 h-2 shrink-0 rounded-full bg-primary/40"></span>
+  <div #stack class="stack relative w-full aspect-[3/4.4] min-h-[520px] mb-space-lg">
+    @switch (loadState()) {
+      @case ('loading') {
+        <div class="absolute inset-0 rounded-2xl bg-surface-container-low flex flex-col items-center justify-center gap-3 text-secondary">
+          <span class="material-symbols-outlined animate-spin text-primary text-[28px]">progress_activity</span>
+          <span class="font-label-lg text-label-lg">Finding gatherings near you...</span>
         </div>
-      </div>
-    }
-
-    @if (active(); as card) {
-      <div
-        tabindex="0"
-        role="group"
-        [attr.aria-label]="card.title + '. Press left arrow to join, right arrow to pass.'"
-        class="absolute inset-0 rounded-2xl bg-surface-container overflow-hidden shadow-[0_24px_48px_rgba(14,5,8,0.9)] flex flex-col justify-between touch-none focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        [class.cursor-grab]="!dragging()"
-        [class.cursor-grabbing]="dragging()"
-        [style.transform]="cardTransform()"
-        [style.opacity]="exiting() ? 0 : 1"
-        [style.transition]="dragging() ? 'none' : 'transform 300ms ease, opacity 300ms ease'"
-        (pointerdown)="onPointerDown($event)"
-        (pointermove)="onPointerMove($event)"
-        (pointerup)="onPointerUp()"
-        (pointercancel)="onPointerUp()"
-        (keydown)="onKeydown($event)"
-      >
-        <!-- Ambient image background -->
-        <div class="absolute inset-0 z-0">
-          <img alt="" draggable="false" class="w-full h-full object-cover" [src]="card.imageUrl" />
-          <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface-container-highest/75 via-45% to-surface/40"></div>
-          <div class="absolute inset-0 bg-radial from-transparent via-surface-container-lowest/30 to-surface-container-lowest/90"></div>
-        </div>
-
-        @if (dragHint(); as hint) {
-          <div
-            class="absolute top-24 z-20 px-4 py-1.5 rounded-full border font-label-lg text-label-lg uppercase tracking-widest backdrop-blur-md"
-            [class]="hint.right ? 'right-5 border-primary text-primary bg-primary/10' : 'left-5 border-secondary text-secondary bg-secondary-container/30'"
-            [style.opacity]="hint.opacity"
+      }
+      @case ('error') {
+        <div class="absolute inset-0 rounded-2xl bg-surface-container-low flex flex-col items-center justify-center gap-3 p-8 text-center">
+          <span class="material-symbols-outlined text-error text-[32px]">cloud_off</span>
+          <h2 class="font-headline-sm text-headline-sm text-on-surface">We couldn’t load invitations</h2>
+          <p class="font-body-md text-body-md text-secondary">Please check your connection and try again.</p>
+          <button
+            type="button"
+            class="mt-2 px-4 py-2 rounded-lg border border-primary/35 text-on-surface font-label-lg text-label-lg hover:border-primary hover:bg-primary/5 transition-colors"
+            (click)="load()"
           >
-            {{ hint.label }}
+            Try again
+          </button>
+        </div>
+      }
+      @default {
+        @for (card of visibleCards(); track card.itineraryId; let i = $index) {
+          <div
+            class="stack-card absolute inset-0 rounded-2xl bg-surface-container overflow-hidden flex flex-col justify-between touch-pan-y"
+            [class.cursor-grab]="i === 0"
+            [class]="i === 0 ? 'shadow-[0_24px_48px_rgba(14,5,8,0.9)]' : 'shadow-2xl'"
+            [attr.data-index]="i"
+            [style.z-index]="3 - i"
+            [attr.inert]="i === 0 ? null : ''"
+            [attr.aria-hidden]="i === 0 ? null : 'true'"
+            [attr.role]="i === 0 ? 'group' : null"
+            [attr.aria-label]="i === 0 ? card.title + ', ' + card.matchPercent + '% match. Use the arrow keys or the buttons below to join or pass.' : null"
+            (pointerdown)="i === 0 && onPointerDown($event)"
+          >
+            <!-- Ambient image background -->
+            <div class="absolute inset-0 z-0">
+              <img alt="" draggable="false" class="w-full h-full object-cover" [src]="card.imageUrl" />
+              <div class="absolute inset-0 bg-gradient-to-t from-surface via-surface-container-highest/75 via-45% to-surface/40"></div>
+              <div class="absolute inset-0 bg-radial from-transparent via-surface-container-lowest/30 to-surface-container-lowest/90"></div>
+            </div>
+
+            @if (i === 0) {
+              <!-- JOIN / PASS stamps; opacity is driven from script while dragging -->
+              <div
+                aria-hidden="true"
+                data-stamp="join"
+                class="stamp absolute top-28 left-6 z-20 -rotate-12 px-4 py-1.5 rounded-lg border-2 border-confirmed text-confirmed bg-confirmed/10 font-title-lg text-title-lg uppercase tracking-[0.2em]"
+              >
+                Join
+              </div>
+              <div
+                aria-hidden="true"
+                data-stamp="pass"
+                class="stamp absolute top-28 right-6 z-20 rotate-12 px-4 py-1.5 rounded-lg border-2 border-declined text-declined bg-declined/10 font-title-lg text-title-lg uppercase tracking-[0.2em]"
+              >
+                Pass
+              </div>
+            }
+
+            <!-- Top meta -->
+            <div class="relative z-10 p-4 flex flex-col gap-2">
+              <div class="flex items-center justify-between gap-2">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest/90 text-primary font-label-sm text-label-sm shadow-sm min-w-0">
+                  <span class="material-symbols-outlined icon-fill text-[15px]">schedule</span>
+                  <span class="truncate">{{ card.whenLabel }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="shrink-0 inline-flex items-center gap-1 pl-3 pr-2 py-1 rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-md hover:bg-primary-fixed transition-colors"
+                  [attr.aria-label]="card.matchPercent + '% match. Show match details'"
+                  (pointerdown)="$event.stopPropagation()"
+                  (click)="openMatch(card, $event)"
+                >
+                  {{ card.matchPercent }}% match
+                  <span class="material-symbols-outlined text-[16px]">expand_more</span>
+                </button>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high/95 text-on-surface font-label-sm text-label-sm shadow-sm">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  <span>{{ card.spotsLabel }}</span>
+                </div>
+                @if (card.note) {
+                  <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface/85 min-w-0">
+                    <span class="material-symbols-outlined icon-fill text-[13px] text-primary">verified</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant truncate">{{ card.note }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Bottom content -->
+            <div class="relative z-10 p-5 flex flex-col gap-3 bg-gradient-to-t from-surface via-surface/95 to-transparent pt-8">
+              @if (card.location) {
+                <div class="flex items-center gap-1.5 text-primary">
+                  <span class="material-symbols-outlined text-[16px]">location_on</span>
+                  <span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold truncate">{{ card.location }}</span>
+                </div>
+              }
+              <h2 class="font-headline-sm text-headline-sm text-on-surface leading-snug">{{ card.title }}</h2>
+
+              @if (card.matchReasons.length) {
+                <div class="flex flex-col gap-1">
+                  @for (reason of card.matchReasons.slice(0, 2); track reason) {
+                    <span class="inline-flex items-center gap-1.5 self-start max-w-full px-2.5 py-0.5 rounded-full border border-primary/25 bg-primary/10 text-primary font-label-sm text-label-sm">
+                      <span class="material-symbols-outlined text-[13px] shrink-0">check</span>
+                      <span class="truncate">{{ reason }}</span>
+                    </span>
+                  }
+                </div>
+              }
+
+              <div class="p-3 rounded-lg bg-surface-container-low/95 shadow-inner flex flex-col gap-1">
+                <p class="font-body-md text-body-md text-on-surface italic leading-relaxed">“{{ card.inviteMessage }}”</p>
+                <div class="flex items-center gap-2 pt-1 mt-1 min-w-0">
+                  @if (card.host.imageUrl && !brokenAvatars().has(card.itineraryId)) {
+                    <img
+                      alt=""
+                      draggable="false"
+                      class="w-6 h-6 shrink-0 rounded-full object-cover"
+                      [src]="card.host.imageUrl"
+                      (error)="markAvatarBroken(card.itineraryId)"
+                    />
+                  } @else {
+                    <div class="w-6 h-6 shrink-0 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-[11px] font-bold">
+                      {{ card.host.initials }}
+                    </div>
+                  }
+                  <span class="font-label-sm text-label-sm text-on-surface-variant font-medium truncate">
+                    {{ card.host.name }} <span class="text-outline">• {{ card.host.suiteLabel }}</span>
+                  </span>
+                </div>
+              </div>
+
+              @if (card.tags.length) {
+                <div class="flex flex-wrap gap-1.5 pt-0.5">
+                  @for (tag of card.tags; track tag) {
+                    <span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">{{ tag }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Dims the cards behind; fades out as they move up -->
+            <div class="card-dim absolute inset-0 z-30 bg-surface-container-lowest pointer-events-none"></div>
+          </div>
+        } @empty {
+          <div class="absolute inset-0 rounded-2xl bg-surface-container-low flex flex-col items-center justify-center gap-3 p-8 text-center">
+            <span class="material-symbols-outlined text-primary text-[36px]">nights_stay</span>
+            <h2 class="font-headline-sm text-headline-sm text-on-surface">You’ve seen every invitation tonight.</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant">
+              New salons appear as fellow patrons open their doors.
+            </p>
+            <button
+              type="button"
+              class="mt-2 font-label-lg text-label-lg text-primary underline underline-offset-4 hover:text-primary-fixed disabled:opacity-60"
+              [disabled]="resetting()"
+              (click)="startOver()"
+            >
+              {{ resetting() ? 'Starting over...' : 'Start over' }}
+            </button>
           </div>
         }
+      }
+    }
 
-        <!-- Top meta -->
-        <div class="relative z-10 p-4 flex flex-col gap-2">
-          <div class="flex items-center justify-between gap-2">
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-lowest/80 backdrop-blur-md text-primary font-label-sm text-label-sm shadow-sm">
-              <span class="material-symbols-outlined icon-fill text-[15px]">schedule</span>
-              <span>{{ card.startsAtLabel }}</span>
-            </div>
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high/90 backdrop-blur-md text-on-surface font-label-sm text-label-sm shadow-sm">
-              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-              <span>{{ card.spotsRemaining }} spots remaining</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5 self-start px-2.5 py-0.5 rounded-full bg-surface/70 backdrop-blur-sm">
-            <span class="material-symbols-outlined icon-fill text-[13px] text-primary">verified</span>
-            <span class="font-label-sm text-label-sm text-on-surface-variant">{{ card.verifiedLabel }}</span>
-          </div>
+    <!-- "Not tonight": a quiet acknowledgement of a pass; re-created per pass so it replays -->
+    @for (key of passFeedbackKeys(); track key) {
+      <div aria-hidden="true" class="pass-feedback absolute inset-x-0 top-[24%] z-40 flex justify-center pointer-events-none">
+        <div class="flex flex-col items-center gap-3 px-6 py-5 rounded-2xl bg-surface-container-lowest/90 shadow-[0_16px_36px_-8px_rgba(10,3,6,0.65)]">
+          <span class="w-14 h-14 rounded-full border border-on-surface-variant/35 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[24px] text-on-surface-variant">close</span>
+          </span>
+          <span class="font-label-sm text-label-sm uppercase tracking-[0.3em] text-on-surface-variant">Not tonight</span>
         </div>
-
-        <!-- Bottom content -->
-        <div class="relative z-10 p-5 flex flex-col gap-3 bg-gradient-to-t from-surface via-surface/95 to-transparent pt-8">
-          <div class="flex items-center gap-1.5 text-primary">
-            <span class="material-symbols-outlined text-[16px]">location_on</span>
-            <span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold">{{ card.venue }}</span>
-          </div>
-          <h2 class="font-headline-sm text-headline-sm text-on-surface leading-snug">{{ card.title }}</h2>
-          <div class="p-3 rounded-lg bg-surface-container-low/90 backdrop-blur-md shadow-inner flex flex-col gap-1">
-            <p class="font-body-md text-body-md text-on-surface italic leading-relaxed">“{{ card.hostNote }}”</p>
-            <div class="flex items-center justify-between pt-1 mt-1">
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container text-[11px] font-bold">
-                  {{ card.host.initials }}
-                </div>
-                <span class="font-label-sm text-label-sm text-on-surface-variant font-medium">
-                  {{ card.host.names }} <span class="text-outline">• {{ card.host.suite }}</span>
-                </span>
-              </div>
-              <span class="font-label-sm text-label-sm text-primary">{{ card.host.role }}</span>
-            </div>
-          </div>
-          <div class="flex flex-wrap gap-1.5 pt-0.5">
-            @for (tag of card.tags; track tag.label) {
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
-                <span class="material-symbols-outlined text-[13px] text-primary">{{ tag.icon }}</span>
-                {{ tag.label }}
-              </span>
-            }
-          </div>
-        </div>
-      </div>
-    } @else {
-      <div class="absolute inset-0 rounded-2xl bg-surface-container-low flex flex-col items-center justify-center gap-3 p-8 text-center">
-        <span class="material-symbols-outlined text-primary text-[36px]">nights_stay</span>
-        <h2 class="font-headline-sm text-headline-sm text-on-surface">You’re all caught up</h2>
-        <p class="font-body-md text-body-md text-on-surface-variant">
-          New salons appear as fellow patrons open their doors. Your concierge will let you know.
-        </p>
-        <button
-          type="button"
-          class="mt-2 px-4 py-2 rounded-lg border border-primary/35 text-on-surface font-label-lg text-label-lg hover:border-primary hover:bg-primary/5 transition-colors"
-          (click)="restart()"
-        >
-          Review invitations again
-        </button>
       </div>
     }
   </div>
 
-  @if (active(); as card) {
-    <p class="font-label-sm text-label-sm text-on-surface-variant/80 text-center tracking-wide">
-      Swipe Right&nbsp; to pass • Swipe Left to confirm attendance with {{ card.host.suite }}
-    </p>
+  @if (active()) {
+    <div class="flex flex-col items-center gap-3 w-full">
+      <div class="flex items-center justify-center gap-8">
+        <button
+          type="button"
+          aria-label="Pass"
+          class="w-14 h-14 rounded-full bg-surface-container-high text-declined border border-declined/30 flex items-center justify-center shadow-lg hover:bg-surface-container-highest active:scale-95 transition-all disabled:opacity-50"
+          [disabled]="exiting() || joining()"
+          (click)="swipe('pass')"
+        >
+          <span class="material-symbols-outlined text-[28px]">close</span>
+        </button>
+        <button
+          type="button"
+          aria-label="Join"
+          class="w-14 h-14 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg hover:bg-primary-fixed active:scale-95 transition-all disabled:opacity-50"
+          [disabled]="exiting() || joining()"
+          (click)="swipe('join')"
+        >
+          <span class="material-symbols-outlined text-[28px]">check</span>
+        </button>
+      </div>
+      <p class="font-label-sm text-label-sm text-on-surface-variant/80 text-center tracking-wide">
+        Swipe left to pass • Swipe right to join
+      </p>
+    </div>
   }
 </div>
+
+<!-- Match details sheet -->
+@if (matchSheet(); as card) {
+  <div class="fixed inset-0 z-[60] flex items-end justify-center bg-surface/70 backdrop-blur-sm" (click)="matchSheet.set(null)">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="match-sheet-title"
+      class="w-full max-w-[430px] rounded-t-[24px] bg-surface-container-low p-5 pb-[max(2rem,env(safe-area-inset-bottom))] flex flex-col gap-4 shadow-[0_-16px_36px_-8px_rgba(10,3,6,0.65)]"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="mx-auto w-9 h-1 rounded-full bg-secondary/20"></div>
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex flex-col gap-0.5">
+          <span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">{{ card.matchPercent }}% match</span>
+          <h2 id="match-sheet-title" class="font-headline-sm text-headline-sm text-on-surface">{{ card.title }}</h2>
+        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          class="w-9 h-9 shrink-0 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-on-surface"
+          (click)="matchSheet.set(null)"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      @if (card.matchBreakdown.length) {
+        <ul class="flex flex-col gap-4">
+          @for (row of card.matchBreakdown; track row.key) {
+            <li class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="font-title-md text-title-md text-on-surface">{{ row.label }}</span>
+                <span class="font-label-lg text-label-lg text-primary">{{ row.percent }}%</span>
+              </div>
+              <div
+                class="h-1.5 rounded-full bg-surface-container-highest overflow-hidden"
+                role="progressbar"
+                [attr.aria-label]="row.label"
+                [attr.aria-valuenow]="row.percent"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div class="h-full rounded-full bg-primary-container" [style.width.%]="row.percent"></div>
+              </div>
+              <span class="font-body-md text-body-md text-on-surface-variant">{{ row.detail }}</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="font-body-md text-body-md text-on-surface-variant">No match details for this gathering yet.</p>
+      }
+    </div>
+  </div>
+}
+
+@if (celebration(); as c) {
+  <app-join-celebration [title]="c.title" [suiteLabel]="c.suiteLabel" [whenLabel]="c.whenLabel" />
+}
+
+<!-- Toast -->
+@if (toast(); as t) {
+  <div
+    role="status"
+    aria-live="polite"
+    class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2.5rem)] max-w-[390px] px-4 py-3 rounded-xl flex items-center gap-2 shadow-2xl backdrop-blur-xl bg-surface-container-highest/95"
+  >
+    <span
+      class="material-symbols-outlined icon-fill text-[20px]"
+      [class]="t.tone === 'success' ? 'text-confirmed' : 'text-error'"
+    >{{ t.tone === 'success' ? 'check_circle' : 'error' }}</span>
+    <span class="font-label-lg text-label-lg text-on-surface">{{ t.message }}</span>
+  </div>
+}

@@ -52,13 +52,6 @@
               <span class="inline-flex items-center gap-space-xs px-2.5 py-1 rounded-full bg-surface-container-lowest/80 backdrop-blur-md text-primary font-label-sm text-label-sm tracking-wider uppercase">
                 <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>{{ day.badge }}
               </span>
-              <button
-                type="button"
-                aria-label="Digital key"
-                class="w-9 h-9 rounded-full bg-surface-container-high/80 backdrop-blur-md flex items-center justify-center text-primary shadow-sm hover:scale-105 active:scale-95 transition-all"
-              >
-                <span class="material-symbols-outlined text-[18px]">key</span>
-              </button>
             </div>
             <div class="flex items-end justify-between">
               <div>
@@ -177,10 +170,7 @@
           <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
             <span class="material-symbols-outlined text-[18px]">tune</span>
           </div>
-          <div class="flex flex-col min-w-0">
-            <span class="font-title-md text-title-md text-on-surface truncate">Need an adjustment?</span>
-            <span class="font-label-sm text-label-sm text-primary truncate">{{ day.hostResponseLabel }}</span>
-          </div>
+          <span class="font-title-md text-title-md text-on-surface truncate">Need an adjustment?</span>
         </div>
         <a
           routerLink="/"

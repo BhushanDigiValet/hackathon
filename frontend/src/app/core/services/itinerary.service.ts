@@ -1,9 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, timeout } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { ItineraryDay, ItineraryDto } from '../models/stay.models';
+import { CreateItineraryRequest, ItineraryDay, ItineraryDto } from '../models/stay.models';
+
+/** The LLM call can take a while; give up after the backend's own 120s budget. */
+const COMPOSE_TIMEOUT_MS = 120_000;
 
 @Injectable({ providedIn: 'root' })
 export class ItineraryService {
@@ -13,6 +16,13 @@ export class ItineraryService {
     return this.http
       .get<ItineraryDto>(`${environment.apiBaseUrl}/Itinerary`)
       .pipe(map((dto) => toItineraryDay(dto)));
+  }
+
+  /** Asks the LLM to compose the guest's itinerary; the backend saves and returns it. */
+  createFromLlm(request: CreateItineraryRequest): Observable<ItineraryDto> {
+    return this.http
+      .post<ItineraryDto>(`${environment.apiBaseUrl}/plan/createItenaryFromLlm`, request)
+      .pipe(timeout(COMPOSE_TIMEOUT_MS));
   }
 }
 
@@ -26,7 +36,6 @@ export function toItineraryDay(dto: ItineraryDto, today = new Date()): Itinerary
     coverTitle: dto.title,
     heading: day.heading,
     quote: `“${dto.tagline}”`,
-    hostResponseLabel: 'Your private host responds in ~2m',
     items: dto.items.map((item, i) => ({
       id: `${i}-${item.time}`,
       time: item.time,

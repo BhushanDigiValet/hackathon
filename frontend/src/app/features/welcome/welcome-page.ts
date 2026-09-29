@@ -1,7 +1,7 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
 
 import {
   PersonalizationOptions,
@@ -10,6 +10,7 @@ import {
   SynthesisStep,
 } from '../../core/models/stay.models';
 import { GuestSessionService } from '../../core/auth/guest-session.service';
+import { ItineraryService } from '../../core/services/itinerary.service';
 import { PersonalizationService } from '../../core/services/personalization.service';
 
 type LoadState = 'loading' | 'error' | 'loaded';
@@ -23,6 +24,7 @@ export class WelcomePage {
   private readonly personalization = inject(PersonalizationService);
   private readonly router = inject(Router);
   private readonly guestSession = inject(GuestSessionService);
+  private readonly itinerary = inject(ItineraryService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly guest = toSignal(this.personalization.getGuest());
@@ -118,9 +120,13 @@ export class WelcomePage {
       this.router.navigate(['/itinerary']);
       return;
     }
+    const guestId = this.guestSession.guestId();
+    if (guestId === null) return;
+
     this.createError.set(false);
     this.createState.set('loading');
     this.startSteps();
+    // Save the selections first, then have the LLM compose the itinerary from them.
     this.personalization
       .updateProfile(profile, {
         moodIds: [...this.selectedMoods()],
@@ -129,11 +135,26 @@ export class WelcomePage {
         openToGuestCircles: this.openToGuestCircles(),
         intention: this.intention(),
       })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (saved) => {
+      .pipe(
+        switchMap((saved) => {
           // The API echoes the saved profile; keep it so a retry sends fresh data.
           this.profile = saved?.preferences ? saved : profile;
+          const p = this.profile.preferences;
+          return this.itinerary.createFromLlm({
+            guestId,
+            defaultPrompt: p.defaultPrompt,
+            atmosphereMoodIds: p.atmosphereMoodIds,
+            itineraryCadenceId: p.itineraryCadenceId,
+            travelCompanyId: p.travelCompanyId,
+            openToGuestCircles: p.openToGuestCircles,
+            budgetTier: p.budgetTier,
+            doNotDisturbBefore: p.doNotDisturbBefore,
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
           this.stopSteps();
           this.createState.set('ready');
         },

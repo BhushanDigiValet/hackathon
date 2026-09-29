@@ -1,0 +1,89 @@
+// Card stack poses. `--p` (0..1) is the top card's drag progress, set from
+// script: the cards behind grow into the next position as the top card leaves.
+.stack {
+  --p: 0;
+}
+
+.stack-card {
+  transition:
+    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 420ms ease;
+  animation: card-enter 320ms ease-out backwards;
+
+  &[data-index='1'] {
+    transform: translate3d(0, calc(12px * (1 - var(--p))), 0) scale(calc(0.95 + 0.05 * var(--p)));
+    pointer-events: none;
+  }
+
+  &[data-index='2'] {
+    transform: translate3d(0, calc(24px - 12px * var(--p)), 0) scale(calc(0.9 + 0.05 * var(--p)));
+    pointer-events: none;
+  }
+}
+
+.card-dim {
+  opacity: 0;
+  transition: opacity 420ms ease;
+
+  [data-index='1'] > & {
+    opacity: calc(0.45 * (1 - var(--p)));
+  }
+
+  [data-index='2'] > & {
+    opacity: calc(0.75 - 0.3 * var(--p));
+  }
+}
+
+// While dragging, the cards behind track the finger exactly.
+.stack[data-dragging] {
+  .stack-card,
+  .card-dim,
+  .stamp {
+    transition: none;
+  }
+}
+
+.stamp {
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.pass-feedback {
+  animation: pass-feedback 950ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pass-feedback {
+  0% {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-card,
+  .card-dim {
+    transition-duration: 1ms;
+    animation: none;
+  }
+
+  .pass-feedback {
+    display: none;
+  }
+}

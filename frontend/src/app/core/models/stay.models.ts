@@ -1,7 +1,6 @@
 /** Shared guest context shown in headers across screens. */
 export interface GuestContext {
   suite: string;
-  tier: string;
   concierge: string;
 }
 
@@ -43,7 +42,6 @@ export interface PersonalizationOptions {
   /** Labels shown in order while a stay is being composed. */
   synthesisSteps: string[];
   demoPrompt: string;
-  modelLabel: string;
 }
 
 /** The guest's saved (preselected) preferences. */
@@ -100,35 +98,71 @@ export interface ProfileDto {
 }
 
 // ---------------------------------------------------------------------------
-// Guest events & invitations
+// Guest circles (events swipe)
 // ---------------------------------------------------------------------------
 
-export interface InvitationTag {
-  icon: string;
+export type SwipeAction = 'join' | 'pass';
+
+export interface MatchBreakdownRow {
+  key: string;
   label: string;
+  percent: number;
+  detail: string;
 }
 
-export interface InvitationHost {
-  names: string;
-  initials: string;
-  suite: string;
-  role: string;
-}
-
-export interface Invitation {
-  id: string;
-  title: string;
-  startsAtLabel: string;
-  spotsRemaining: number;
-  verifiedLabel: string;
-  venue: string;
+/** One invitation card, ready for the events screen. */
+export interface CircleCard {
+  itineraryId: number;
   imageUrl: string;
-  hostNote: string;
-  host: InvitationHost;
-  tags: InvitationTag[];
+  whenLabel: string;
+  spotsLabel: string;
+  note?: string;
+  location: string;
+  title: string;
+  inviteMessage: string;
+  host: { name: string; initials: string; imageUrl?: string; suiteLabel: string };
+  tags: string[];
+  matchPercent: number;
+  matchBreakdown: MatchBreakdownRow[];
+  matchReasons: string[];
 }
 
-export type InvitationResponse = 'accepted' | 'passed';
+/** GET /api/circles/feed and GET /api/circles/joined items. */
+export interface CircleCardDto {
+  itineraryId: number;
+  matchPercent: number;
+  matchBreakdown?: (MatchBreakdownRow & { weight: number })[];
+  matchReasons?: string[];
+  host: {
+    guestId: number;
+    name: string;
+    profileImage?: string | null;
+    suiteLabel: string;
+    openToGuestCircles: boolean;
+  };
+  title: string;
+  tagline: string;
+  /** ISO date, e.g. "2026-10-05". */
+  itineraryDate: string;
+  posterUrl: string;
+  videoUrl?: string;
+  inviteMessage: string;
+  spotsTotal: number;
+  spotsRemaining: number;
+  highlight?: {
+    time?: string;
+    title?: string;
+    note?: string;
+    location?: string;
+    imageUrl?: string;
+    description?: string;
+    status?: string;
+    statusLabel?: string;
+    durationLabel?: string;
+    tags?: string[];
+  };
+  tags?: string[];
+}
 
 // ---------------------------------------------------------------------------
 // Single day itinerary
@@ -161,10 +195,25 @@ export interface ItineraryDay {
   heading: string;
   quote: string;
   items: ItineraryItem[];
-  hostResponseLabel: string;
 }
 
-/** GET /api/Itinerary */
+/**
+ * POST /api/plan/createItenaryFromLlm — the guest's selections for the LLM.
+ * The backend currently reads guestId, defaultPrompt, travelCompanyId and
+ * atmosphereMoodIds; the rest are sent so it can start using them.
+ */
+export interface CreateItineraryRequest {
+  guestId: number;
+  defaultPrompt: string;
+  atmosphereMoodIds: number[];
+  itineraryCadenceId: number;
+  travelCompanyId: number;
+  openToGuestCircles: boolean;
+  budgetTier: string;
+  doNotDisturbBefore: string;
+}
+
+/** GET /api/Itinerary (also returned by createItenaryFromLlm) */
 export interface ItineraryDto {
   id: number;
   guestId: number;
