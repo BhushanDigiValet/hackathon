@@ -1,0 +1,36 @@
+{
+  "title": "Your Vegas, slowed down",
+  "chapters": [
+    {
+      "time": "10:30",
+      "title": "A slower morning",
+      "text": "Heated basalt and quiet cedar aromas allowed the hurry of previous weeks to softly dissolve.",
+      "category": "wellness"
+    },
+    {
+      "time": "12:30",
+      "title": "Sunlit brunch",
+      "text": "Chilled champagne and warm brioche framed a relaxed afternoon with nowhere else you needed to be.",
+      "category": "dining"
+    },
+    {
+      "time": "18:00",
+      "title": "The golden hour",
+      "text": "From high above the boulevard, desert amber settled into twilight as glasses were raised.",
+      "category": "dining"
+    },
+    {
+      "time": "19:30",
+      "title": "An intimate dinner",
+      "text": "The scent of charred oak and vintage cabernet turned the evening into an unhurried feast.",
+      "category": "dining"
+    },
+    {
+      "time": "22:00",
+      "title": "Shared evening rhythms",
+      "text": "Warm brass melodies filled the room as you shared tableside cocktails with fellow guests under soft amber light.",
+      "category": "nightlife"
+    }
+  ],
+  "closingLine": "When you are ready to pause again, your sanctuary will be waiting."
+}

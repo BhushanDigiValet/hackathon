@@ -1,0 +1,32 @@
+{
+  "mood": "romantic",
+  "pace": "slow",
+  "travelMode": "couple",
+  "socialOptIn": false,
+  "weights": {
+    "wellness": 0.6,
+    "food": 0.9,
+    "nightlife": 0.2,
+    "exploration": 0.4,
+    "luxury": 0.85,
+    "energy": 0.2
+  },
+  "tags": [
+    "romantic",
+    "fine_dining",
+    "luxury",
+    "wine",
+    "quiet"
+  ],
+  "constraints": {
+    "partySize": 2,
+    "wakeAfter": "10:00",
+    "budgetTier": 4,
+    "dietary": [],
+    "notes": "Anniversary celebration sleeping late."
+  },
+  "summary": "An intimate celebration crafted around candlelit corners, exceptional cuisine, and quiet unhurried hours together.",
+  "wakeAfter": "10:00",
+  "budgetTier": 4,
+  "rawPrompt": "Celebrating our anniversary. Romantic, a bit fancy, we sleep late."
+}

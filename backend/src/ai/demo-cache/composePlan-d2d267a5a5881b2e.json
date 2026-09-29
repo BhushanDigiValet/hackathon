@@ -1,0 +1,33 @@
+{
+  "planSummary": "You said you wanted to slow down after a crazy few months, so your morning begins gently with a restorative spa treatment, leaving the afternoon open before sunset drinks, fine dining, and live jazz.",
+  "items": [
+    {
+      "catalogueItemId": 12,
+      "startAt": "10:30",
+      "endAt": "12:00",
+      "why": "You mentioned needing to slow down after crazy months, and this heated river stone massage releases deep-seated tension.",
+      "upsellItemId": 15,
+      "upsellReason": "Enjoy champagne and hand-crafted truffles in the private relaxation lounge after your treatment."
+    },
+    {
+      "catalogueItemId": 9,
+      "startAt": "18:00",
+      "endAt": "19:15",
+      "why": "Perched high with open skyline views, this terrace is the ideal vantage to watch the desert sunset unfold."
+    },
+    {
+      "catalogueItemId": 4,
+      "startAt": "19:30",
+      "endAt": "21:30",
+      "why": "Prime cuts and wood-fired delicacies in a secluded alcove cater to your desire for an indulgent, memorable meal.",
+      "upsellItemId": 27,
+      "upsellReason": "Reserve a private candlelit balcony table overlooking the illuminated gardens for dinner."
+    },
+    {
+      "catalogueItemId": 22,
+      "startAt": "22:00",
+      "endAt": "23:30",
+      "why": "Live saxophone quartets and craft bourbon create the effortless social atmosphere you requested to cap off your night."
+    }
+  ]
+}

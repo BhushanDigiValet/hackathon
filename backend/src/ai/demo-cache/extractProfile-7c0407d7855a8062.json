@@ -1,0 +1,31 @@
+{
+  "mood": "recharge",
+  "pace": "slow",
+  "travelMode": "solo",
+  "socialOptIn": false,
+  "weights": {
+    "wellness": 0.9,
+    "food": 0.6,
+    "nightlife": 0,
+    "exploration": 0.1,
+    "luxury": 0.8,
+    "energy": 0.1
+  },
+  "tags": [
+    "pool",
+    "wellness",
+    "quiet",
+    "casual"
+  ],
+  "constraints": {
+    "partySize": 1,
+    "wakeAfter": "09:00",
+    "budgetTier": 2,
+    "dietary": [],
+    "notes": "Restorative quiet getaway."
+  },
+  "summary": "A peaceful sanctuary focused entirely on private relaxation by the water, effortless dining, and unbroken quiet.",
+  "wakeAfter": "09:00",
+  "budgetTier": 2,
+  "rawPrompt": "Just want to rest. Pool, room service, early night."
+}

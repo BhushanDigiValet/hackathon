@@ -1,0 +1,42 @@
+{
+  "understood": "You would like tonight to carry more social energy while keeping your daytime relaxation intact.",
+  "changes": [
+    "Late Night: Replaced Midnight Jazz with Velvet Room Club for high-energy social nightlife",
+    "Kept: Golden Hour Terrace Bar (confirmed)"
+  ],
+  "profilePatch": {
+    "weights": {
+      "nightlife": 0.85,
+      "energy": 0.7
+    },
+    "tags": [
+      "spa",
+      "wellness",
+      "fine_dining",
+      "sunset",
+      "social",
+      "nightlife",
+      "lively"
+    ]
+  },
+  "items": [
+    {
+      "catalogueItemId": 12,
+      "startAt": "10:30",
+      "endAt": "12:00",
+      "why": "Your morning massage remains untouched so you begin your day fully refreshed."
+    },
+    {
+      "catalogueItemId": 4,
+      "startAt": "19:30",
+      "endAt": "21:30",
+      "why": "Dinner at Ember and Oak provides a rich, satisfying foundation before your social night out."
+    },
+    {
+      "catalogueItemId": 21,
+      "startAt": "22:00",
+      "endAt": "01:00",
+      "why": "Premier DJs and vibrant bottle service deliver the lively social night you asked for."
+    }
+  ]
+}

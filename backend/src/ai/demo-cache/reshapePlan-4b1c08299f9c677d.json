@@ -1,0 +1,39 @@
+{
+  "understood": "You would like a relaxed dinner atmosphere with a lighter bill instead of formal fine dining.",
+  "changes": [
+    "Dinner: Ember & Oak → Vine Street Grill, casual wood-fired comfort food",
+    "Kept: Golden Hour Terrace Bar (confirmed)"
+  ],
+  "profilePatch": {
+    "constraints": {
+      "budgetTier": 2
+    },
+    "tags": [
+      "spa",
+      "wellness",
+      "casual",
+      "sunset",
+      "social"
+    ]
+  },
+  "items": [
+    {
+      "catalogueItemId": 12,
+      "startAt": "10:30",
+      "endAt": "12:00",
+      "why": "Your morning massage is preserved for restorative relaxation."
+    },
+    {
+      "catalogueItemId": 7,
+      "startAt": "19:30",
+      "endAt": "21:00",
+      "why": "Fresh coastal fare and laid-back grill favorites give you great food without the formality."
+    },
+    {
+      "catalogueItemId": 22,
+      "startAt": "22:00",
+      "endAt": "23:30",
+      "why": "Unwind with late night jazz cocktails after an easygoing dinner."
+    }
+  ]
+}
