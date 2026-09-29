@@ -16,12 +16,15 @@ export class PlanController {
     @Req() req: any,
     @Body()
     body: {
+      guestId: number;
       defaultPrompt: string;
       travelCompanyId: number;
       atmosphereMoodIds: number[];
     },
   ) {
-    return this.planService.createItineraryFromLlm(guestId(req), body);
+    // Body guestId first; fall back to the x-guest-id header for older callers.
+    const id = Number(body?.guestId) || guestId(req);
+    return this.planService.createItineraryFromLlm(id, body);
   }
 
   @Post('reshape')

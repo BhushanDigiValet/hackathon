@@ -172,7 +172,12 @@ export class PlanService {
 
   async createItineraryFromLlm(
     guestId: number,
-    body: { defaultPrompt: string; travelCompanyId: number; atmosphereMoodIds: number[] },
+    body: {
+      guestId: number;
+      defaultPrompt: string;
+      travelCompanyId: number;
+      atmosphereMoodIds: number[];
+    },
   ) {
     const options = await this.profileService.getOptions();
     const selectedMoods = options.atmosphereAndMood
@@ -219,7 +224,9 @@ export class PlanService {
     const candidates = allCatalogue.filter((c) => !c.details?.upsellOfId);
 
     const llmPlan = await this.aiService.composePlan(profile, candidates, []);
-    const plan: any[] =
+
+    // Fallback order: Claude plan → mood-aware fallbackCompose → fixed demo day.
+    let plan: any[] =
       llmPlan && llmPlan.length > 0
         ? llmPlan
         : await this.fallbackCompose(
@@ -228,6 +235,44 @@ export class PlanService {
             [],
             allCatalogue,
           );
+
+    if (plan.length === 0) {
+      // Last resort so the guest never gets an empty day. Keep only ids that
+      // still exist in catalogue_item.
+      const catalogueIds = new Set(allCatalogue.map((c) => c.id));
+      plan = [
+        {
+          catalogueItemId: 13, // Aura Cleansing Facial
+          startAt: '11:00',
+          endAt: '12:00',
+          why: 'Picked because you asked for a relaxing spa experience to start your luxurious day.',
+        },
+        {
+          catalogueItemId: 17, // Oasis Pool Day Pass
+          startAt: '13:00',
+          endAt: '16:00',
+          why: 'Enjoy the afternoon lounging by the pool in a relaxing atmosphere.',
+        },
+        {
+          catalogueItemId: 25, // Helicopter Sunset Tour
+          startAt: '17:30',
+          endAt: '18:30',
+          why: 'A beautiful sunset experience just as you requested.',
+        },
+        {
+          catalogueItemId: 2, // Fine Dining
+          startAt: '19:30',
+          endAt: '21:30',
+          why: 'Indulgent fine dining to satisfy your craving for great food.',
+        },
+        {
+          catalogueItemId: 9, // Social Cocktails
+          startAt: '22:00',
+          endAt: '23:30',
+          why: 'A social evening with cocktails to cap off the perfect day.',
+        },
+      ].filter((p) => catalogueIds.has(p.catalogueItemId));
+    }
 
     const curatedItems = plan.map((p) => {
       const cat = allCatalogue.find((c) => c.id === p.catalogueItemId);
@@ -259,8 +304,10 @@ export class PlanService {
         'Arrive slowly, breathe out. Every hour prepared for your arrival.',
       suiteLabel: 'Suite 1204',
       itineraryDate: '2026-10-02',
-      posterUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80&auto=format&fit=crop',
-      videoUrl: 'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4',
+      posterUrl:
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80&auto=format&fit=crop',
+      videoUrl:
+        'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4',
       items: curatedItems,
     });
 
