@@ -5,6 +5,7 @@ import { StayPlanItem, CatalogueItem, StayProfile } from '../entities';
 import { AiService } from '../ai/ai.service';
 import { ProfileService } from '../profile/profile.service';
 import { EventsService } from '../events/events.service';
+import { ItineraryService } from '../itinerary/itinerary.service';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class PlanService {
     private readonly profileService: ProfileService,
     private readonly aiService: AiService,
     private readonly eventsService: EventsService,
+    private readonly itineraryService: ItineraryService,
   ) {}
 
   private getCategoryGroupMap() {
@@ -168,6 +170,72 @@ export class PlanService {
       );
   }
 
+  async createItineraryFromLlm(
+    guestId: number,
+    body: { defaultPrompt: string; travelCompanyId: number; atmosphereMoodIds: number[] },
+  ) {
+    const options = await this.profileService.getOptions();
+    const selectedMoods = options.atmosphereAndMood
+      .filter((m) => body.atmosphereMoodIds?.includes(m.id))
+      .map((m) => m.name);
+    const selectedCompany = options.travelCompany.find(
+      (c) => c.id === body.travelCompanyId,
+    );
+
+    // Create a robust mock profile for the LLM to use
+    const fakeProfile = {
+      preferences: {
+        rawPrompt: body.defaultPrompt,
+        tags: [...selectedMoods, selectedCompany?.name].filter(Boolean),
+        budgetTier: 3, // default to luxurious if they ask for it
+      },
+      constraints: {
+        wakeAfter: '08:00',
+        pace: 'relaxed',
+      },
+      socialOptIn: true
+    };
+
+    const allCatalogue = await this.catalogueRepo.find();
+
+    // Call the LLM directly, bypassing candidate scoring and StayPlanItem creation
+    const llmPlan = await this.aiService.composePlan(fakeProfile, allCatalogue, []);
+
+    // If the LLM failed, fallback to an empty array so we don't crash
+    const safePlan = llmPlan || [];
+
+    const curatedItems = safePlan.map((p) => {
+      const cat = allCatalogue.find((c) => c.id === p.catalogueItemId);
+      const duration = cat?.details?.durationMin
+        ? `${cat.details.durationMin} min`
+        : '';
+        
+      return {
+        time: p.startAt || 'TBD',
+        status: 'confirmed',
+        statusLabel: 'Confirmed',
+        location: cat?.name || 'Resort',
+        durationLabel: duration,
+        title: cat?.name || 'Activity',
+        description: cat?.description || '',
+        imageUrl: cat?.details?.imageUrl || '',
+        note: p.why || '',
+      };
+    });
+
+    const guestItinerary = await this.itineraryService.upsertForGuest(guestId, {
+      title: 'Your Curated Journey',
+      tagline: 'Arrive slowly, breathe out. Every hour prepared for your arrival.',
+      suiteLabel: 'Suite 1204',
+      itineraryDate: '2026-10-02',
+      posterUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=80&auto=format&fit=crop',
+      videoUrl: 'https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_1MB.mp4',
+      items: curatedItems,
+    });
+
+    return guestItinerary;
+  }
+
   async generate(guestId: number) {
     const profile = await this.profileService.getProfile(guestId);
     const allCatalogue = await this.catalogueRepo.find();
@@ -187,10 +255,13 @@ export class PlanService {
     }
 
     // delete existing suggested
-    await this.planRepo.delete({
-      guestId,
-      details: { state: 'suggested' } as any,
-    });
+    // NOTE: using find first to avoid typeorm json column issues
+    const currentItems = await this.planRepo.find({ where: { guestId } });
+    for (const item of currentItems) {
+      if (item.details?.state === 'suggested') {
+        await this.planRepo.remove(item);
+      }
+    }
 
     // insert new
     for (const p of plan) {

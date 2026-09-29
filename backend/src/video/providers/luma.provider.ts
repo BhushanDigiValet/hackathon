@@ -24,6 +24,7 @@ export class LumaProvider implements IVideoProvider {
     }
     this.apiKey = apiKey.trim();
     this.baseUrl = baseUrl.replace(/\/+$/, '');
+    this.logger.log(`Luma API key loaded: ${this.apiKey.substring(0, 9)}...`);
   }
 
   /**
@@ -38,6 +39,7 @@ export class LumaProvider implements IVideoProvider {
     metadata?: Record<string, any>;
   }> {
     const payload: Record<string, any> = {
+      model: 'ray-2',
       prompt: builtPrompt,
     };
 
@@ -203,20 +205,26 @@ export class LumaProvider implements IVideoProvider {
       errorDetail = await response.text().catch(() => '');
     }
 
+    this.logger.error(
+      `Luma API error: status=${response.status}, body=${errorDetail}`,
+    );
+
     if (response.status === 401 || response.status === 403) {
-      this.logger.error(
-        'Luma provider authentication failed. Check VIDEO_PROVIDER_API_KEY.',
-      );
       throw new Error(
-        `${prefix}: Invalid or unauthorized provider API credentials`,
+        `${prefix}: Authentication/authorization problem. Check API key.`,
       );
+    }
+    
+    if (response.status === 400) {
+      throw new Error(`${prefix}: Invalid request or payload format.`);
     }
 
     if (response.status === 429) {
-      this.logger.warn('Luma rate limit exceeded.');
-      throw new Error(
-        `${prefix}: Provider rate limit reached. Please retry later.`,
-      );
+      throw new Error(`${prefix}: Rate limit exceeded.`);
+    }
+    
+    if (response.status >= 500) {
+      throw new Error(`${prefix}: Luma server error.`);
     }
 
     throw new Error(`${prefix}: HTTP ${response.status} - ${errorDetail}`);

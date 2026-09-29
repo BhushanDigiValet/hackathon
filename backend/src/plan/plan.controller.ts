@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Req,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Post, Body, Req, Param, Delete } from '@nestjs/common';
 import { PlanService } from './plan.service';
 import { guestId } from '../common/guest-id';
 
@@ -14,14 +6,22 @@ import { guestId } from '../common/guest-id';
 export class PlanController {
   constructor(private readonly planService: PlanService) {}
 
-  @Get()
-  async getPlan(@Req() req: any) {
-    return this.planService.toPlanView(guestId(req));
-  }
-
   @Post('generate')
   async generatePlan(@Req() req: any) {
     return this.planService.generate(guestId(req));
+  }
+
+  @Post('createItenaryFromLlm')
+  async createItineraryFromLlm(
+    @Req() req: any,
+    @Body()
+    body: {
+      defaultPrompt: string;
+      travelCompanyId: number;
+      atmosphereMoodIds: number[];
+    },
+  ) {
+    return this.planService.createItineraryFromLlm(guestId(req), body);
   }
 
   @Post('reshape')

@@ -7,6 +7,7 @@ import { PikaProvider } from './pika.provider';
 import { MockVideoProvider } from './mock.provider';
 import { GoogleVeoProvider } from './google-veo.provider';
 import { LocalReelProvider } from './local-reel.provider';
+import { PixVerseProvider } from './pixverse.provider';
 import { join } from 'path';
 
 @Injectable()
@@ -26,6 +27,7 @@ export class VideoProviderFactory {
     this.registerProvider('gemini', (key) => new GoogleVeoProvider(key));
     this.registerProvider('veo', (key) => new GoogleVeoProvider(key));
     this.registerProvider('mock', () => new MockVideoProvider());
+    this.registerProvider('pixverse', (key) => new PixVerseProvider(key));
     this.registerProvider(
       'local',
       () =>
@@ -69,6 +71,18 @@ export class VideoProviderFactory {
       .trim();
 
     const apiKey = (
+      (configuredProvider === 'pixverse'
+        ? this.configService.get<string>('PIXVERSE_API_KEY') ||
+          process.env.PIXVERSE_API_KEY
+        : null) ||
+      (configuredProvider === 'luma'
+        ? this.configService.get<string>('LUMA_API_KEY') ||
+          process.env.LUMA_API_KEY
+        : null) ||
+      this.configService.get<string>('PIXVERSE_API_KEY') ||
+      process.env.PIXVERSE_API_KEY ||
+      this.configService.get<string>('LUMA_API_KEY') ||
+      process.env.LUMA_API_KEY ||
       this.configService.get<string>('VIDEO_PROVIDER_API_KEY') ||
       process.env.VIDEO_PROVIDER_API_KEY ||
       ''
@@ -82,11 +96,12 @@ export class VideoProviderFactory {
     // Keyless providers ('local', 'mock') need no API key. Any other provider without a key
     // falls back to 'local', which renders a real reel from itinerary data.
     const keyless = new Set(['local', 'mock']);
-    let targetProviderName = configuredProvider || (apiKey ? 'luma' : 'local');
+    let targetProviderName =
+      configuredProvider || (apiKey ? 'pixverse' : 'local');
 
     if (!apiKey && !keyless.has(targetProviderName)) {
       this.logger.warn(
-        `VIDEO_PROVIDER_API_KEY is not configured for provider '${targetProviderName}'. Falling back to 'local' reel renderer.`,
+        `API key is not configured for provider '${targetProviderName}'. Falling back to 'local' reel renderer.`,
       );
       targetProviderName = 'local';
     }
