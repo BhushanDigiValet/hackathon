@@ -45,9 +45,15 @@ async function runPlayground() {
     process.env.DEMO_CACHE = 'on';
   }
 
-  console.log('===============================================================');
-  console.log(`🏨 AI CONCIERGE PLAYGROUND (DEMO_CACHE=${process.env.DEMO_CACHE})`);
-  console.log('===============================================================\n');
+  console.log(
+    '===============================================================',
+  );
+  console.log(
+    `🏨 AI CONCIERGE PLAYGROUND (DEMO_CACHE=${process.env.DEMO_CACHE})`,
+  );
+  console.log(
+    '===============================================================\n',
+  );
 
   const app = await NestFactory.createApplicationContext(AiPlaygroundModule, {
     logger: false,
@@ -71,14 +77,18 @@ async function runPlayground() {
     console.log(`Compose Latency: ${((Date.now() - t1) / 1000).toFixed(2)}s`);
     console.log('Composed Plan:', JSON.stringify(heroPlan, null, 2));
 
-    console.log('\n--- TEST 2: Anniversary Couple (Late wake, romantic, fine dining) ---');
+    console.log(
+      '\n--- TEST 2: Anniversary Couple (Late wake, romantic, fine dining) ---',
+    );
     const p2 = await aiService.extractProfile(
       'Celebrating our anniversary. Romantic, a bit fancy, we sleep late.',
       { travelMode: 'couple' },
     );
     console.log('Profile 2:', JSON.stringify(p2, null, 2));
 
-    console.log('\n--- TEST 3: Bachelor Weekend (Packed, high energy, golf, nightlife) ---');
+    console.log(
+      '\n--- TEST 3: Bachelor Weekend (Packed, high energy, golf, nightlife) ---',
+    );
     const p3 = await aiService.extractProfile(
       'Bachelor weekend with 4 friends, we want energy, golf and a big night out.',
       { travelMode: 'friends', pace: 'packed' },
@@ -92,7 +102,9 @@ async function runPlayground() {
     );
     console.log('Profile 4:', JSON.stringify(p4, null, 2));
 
-    console.log('\n--- TEST 5: Rest & Recharge (Pool, room service, early night) ---');
+    console.log(
+      '\n--- TEST 5: Rest & Recharge (Pool, room service, early night) ---',
+    );
     const p5 = await aiService.extractProfile(
       'Just want to rest. Pool, room service, early night.',
       {},
@@ -102,9 +114,15 @@ async function runPlayground() {
     // =========================================================================
     // 2. RESHAPE PLAN TESTS (Hero plan with sunset locked as confirmed)
     // =========================================================================
-    console.log('\n===============================================================');
-    console.log('--- RESHAPE PLAN TESTS (Hero plan with sunset item confirmed) ---');
-    console.log('===============================================================\n');
+    console.log(
+      '\n===============================================================',
+    );
+    console.log(
+      '--- RESHAPE PLAN TESTS (Hero plan with sunset item confirmed) ---',
+    );
+    console.log(
+      '===============================================================\n',
+    );
 
     const heroPlanItems = (heroPlan?.items || heroPlan || []) as any[];
     const currentItemsWithLocked = heroPlanItems.map((item: any) => {
@@ -124,7 +142,9 @@ async function runPlayground() {
       };
     });
 
-    console.log('--- Reshape a: "Actually I want tonight to be more social." ---');
+    console.log(
+      '--- Reshape a: "Actually I want tonight to be more social." ---',
+    );
     const rA = await aiService.reshapePlan(
       'Actually I want tonight to be more social.',
       heroProfile,
@@ -142,7 +162,9 @@ async function runPlayground() {
     );
     console.log('Reshape b result:', JSON.stringify(rB, null, 2));
 
-    console.log('\n--- Reshape c: "Replace the expensive dinner with something more casual." ---');
+    console.log(
+      '\n--- Reshape c: "Replace the expensive dinner with something more casual." ---',
+    );
     const rC = await aiService.reshapePlan(
       'Replace the expensive dinner with something more casual.',
       heroProfile,
@@ -160,7 +182,9 @@ async function runPlayground() {
     );
     console.log('Reshape d result:', JSON.stringify(rD, null, 2));
 
-    console.log('\n--- Reshape e: "Cancel the sunset." (Locked confirmed test) ---');
+    console.log(
+      '\n--- Reshape e: "Cancel the sunset." (Locked confirmed test) ---',
+    );
     const rE = await aiService.reshapePlan(
       'Cancel the sunset.',
       heroProfile,
@@ -172,9 +196,13 @@ async function runPlayground() {
     // =========================================================================
     // 3. NARRATE MEMORY TEST
     // =========================================================================
-    console.log('\n===============================================================');
+    console.log(
+      '\n===============================================================',
+    );
     console.log('--- NARRATE MEMORY TEST (4 confirmed + 1 shared) ---');
-    console.log('===============================================================\n');
+    console.log(
+      '===============================================================\n',
+    );
 
     const timeline = [
       {
@@ -222,9 +250,13 @@ async function runPlayground() {
     console.error('Playground failed with error:', error);
   } finally {
     await app.close();
-    console.log('\n===============================================================');
+    console.log(
+      '\n===============================================================',
+    );
     console.log('✅ ALL PLAYGROUND TESTS COMPLETED SUCCESSFULLY');
-    console.log('===============================================================');
+    console.log(
+      '===============================================================',
+    );
   }
 }
 

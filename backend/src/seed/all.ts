@@ -10,6 +10,9 @@ import {
   GroupMember,
   GuestEvent,
   MemoryReel,
+  MasterAtmosphere,
+  MasterCadence,
+  MasterTravelCompany,
 } from '../entities';
 import { seedCatalogue } from './catalogue';
 
@@ -24,6 +27,9 @@ export async function seedAll(
   groupMemberRepo: Repository<GroupMember>,
   eventRepo: Repository<GuestEvent>,
   memoryReelRepo: Repository<MemoryReel>,
+  atmosphereRepo: Repository<MasterAtmosphere>,
+  cadenceRepo: Repository<MasterCadence>,
+  travelCompanyRepo: Repository<MasterTravelCompany>,
 ) {
   // 1. Clear all tables (disable FK checks temporarily)
   await guestRepo.query('SET FOREIGN_KEY_CHECKS = 0');
@@ -36,6 +42,9 @@ export async function seedAll(
   await groupMemberRepo.clear();
   await eventRepo.clear();
   await memoryReelRepo.clear();
+  await atmosphereRepo.clear();
+  await cadenceRepo.clear();
+  await travelCompanyRepo.clear();
   await guestRepo.query('SET FOREIGN_KEY_CHECKS = 1');
 
   // 2. Seed base Catalogue Items (creates ~30 items)
@@ -76,14 +85,48 @@ export async function seedAll(
 
   // 4. Seed 50 StayProfiles
   const profiles = [];
+  const prompts = [
+    "I've had a crazy few months. I want this trip to feel luxurious and relaxing. Give me great food, a spa, a beautiful sunset and maybe something social tonight. I don't want to plan everything myself.",
+    'Looking for an adventurous and packed weekend! I want to explore, try unique dining experiences, and maybe catch a late-night show.',
+    'A quiet, romantic getaway for two. We just want to recharge, enjoy some fine dining, and sleep in every morning.',
+  ];
+
   for (let i = 0; i < 50; i++) {
+    // Randomize Atmosphere (pick 2 unique random IDs from 1 to 6)
+    const allAtmospheres = [1, 2, 3, 4, 5, 6];
+    const atmosphereMoodIds = allAtmospheres
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 2);
+
+    const itineraryCadenceId = Math.floor(Math.random() * 3) + 1; // 1 to 3
+    const travelCompanyId = Math.floor(Math.random() * 4) + 1; // 1 to 4
+    const openToGuestCircles = Math.random() > 0.5;
+
+    const wakeTimes = ['08:00 AM', '09:00 AM', '10:00 AM'];
+    const doNotDisturbBefore =
+      wakeTimes[Math.floor(Math.random() * wakeTimes.length)];
+
+    const budgetTiers = [
+      'Tier 2 - Elevated',
+      'Tier 3 - Luxury',
+      'Tier 4 - Unrestricted',
+    ];
+    const budgetTier =
+      budgetTiers[Math.floor(Math.random() * budgetTiers.length)];
+
+    const defaultPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+
     profiles.push(
       profileRepo.create({
         guestId: guests[i].id,
         preferences: {
-          budgetTier: i % 2 === 0 ? 'luxury' : 'standard',
-          pace: i % 3 === 0 ? 'relaxed' : 'active',
-          tags: ['spa', 'dining'],
+          atmosphereMoodIds,
+          itineraryCadenceId,
+          travelCompanyId,
+          openToGuestCircles,
+          doNotDisturbBefore,
+          budgetTier,
+          defaultPrompt,
         },
       }),
     );
@@ -189,5 +232,30 @@ export async function seedAll(
   }
   await memoryReelRepo.save(memoryReels);
 
-  console.log('✅ Seed data successfully injected! At least 50 records in each table.');
+  // 12. Seed Master Tables (Figma Data)
+  await atmosphereRepo.save([
+    { name: 'Relaxed' },
+    { name: 'Indulgent' },
+    { name: 'Adventurous' },
+    { name: 'Romantic' },
+    { name: 'Social' },
+    { name: 'Recharge' },
+  ]);
+
+  await cadenceRepo.save([
+    { name: 'Slow', description: 'Take your time, fewer activities.' },
+    { name: 'Balanced', description: 'Balanced tempo.' },
+    { name: 'Packed', description: 'Full itinerary, maximum experiences.' },
+  ]);
+
+  await travelCompanyRepo.save([
+    { name: 'Just me', icon: 'person' },
+    { name: 'With my partner', icon: 'heart' },
+    { name: 'With friends', icon: 'group' },
+    { name: 'With family', icon: 'family' },
+  ]);
+
+  console.log(
+    '✅ Seed data successfully injected! At least 50 records in each table.',
+  );
 }

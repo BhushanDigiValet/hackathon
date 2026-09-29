@@ -12,6 +12,7 @@ import { ProfileModule } from './profile/profile.module';
 import { PlanModule } from './plan/plan.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { MemoryModule } from './memory/memory.module';
+import { GuestModule } from './guest/guest.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { MemoryModule } from './memory/memory.module';
     PlanModule,
     BookingsModule,
     MemoryModule,
+    GuestModule,
   ],
 })
 export class AppModule {}

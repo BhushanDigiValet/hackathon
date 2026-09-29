@@ -1,0 +1,503 @@
+{
+  "info": {
+    "name": "Sensonic Hackathon API",
+    "description": "API collection for the frontend team to integrate with the NestJS backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "guestId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Guests",
+      "item": [
+        {
+          "name": "Get All Guests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/guests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guests"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Guest by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/guests/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guests",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Guest",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alex Johnson\",\n  \"email\": \"alex@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/guests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "guests"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferences\": {\n    \"budgetTier\": \"luxury\",\n    \"pace\": \"relaxed\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Extract Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"I want a relaxing spa weekend with fine dining\",\n  \"selections\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/profile/extract",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "profile",
+                "extract"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Memory",
+      "item": [
+        {
+          "name": "Get Memory",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/memory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "memory"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Memory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/memory",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "memory"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Plan",
+      "item": [
+        {
+          "name": "Get Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plan/generate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan",
+                "generate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Plan Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"catalogueItemId\": 1,\n  \"startAt\": \"14:00\",\n  \"endAt\": \"15:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plan/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan",
+                "items"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reshape Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"I want to change the dinner reservation to somewhere more casual\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plan/reshape",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan",
+                "reshape"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accept Reshape",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plan/reshape/1/accept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan",
+                "reshape",
+                "1",
+                "accept"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Plan Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plan/items/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plan",
+                "items",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Get Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planItemId\": 1,\n  \"withUpsell\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bookings"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalogue",
+      "item": [
+        {
+          "name": "Get Catalogue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/catalogue",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "catalogue"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Get Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-guest-id",
+                "value": "{{guestId}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

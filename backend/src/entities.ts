@@ -329,6 +329,58 @@ export class MemoryReel {
  * Centralized array exporting all TypeORM entities for easy injection
  * into the DatabaseModule's TypeOrmModule.forFeature() call.
  */
+
+/**
+ * Master table for Atmosphere and Mood options.
+ */
+@Entity('master_atmosphere')
+export class MasterAtmosphere {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 100 })
+  name: string;
+
+  @Column({ default: true })
+  isActive: boolean;
+}
+
+/**
+ * Master table for Itinerary Cadence (Pace) options.
+ */
+@Entity('master_cadence')
+export class MasterCadence {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 100 })
+  name: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  description: string;
+
+  @Column({ default: true })
+  isActive: boolean;
+}
+
+/**
+ * Master table for Travel Company options (companions).
+ */
+@Entity('master_travel_company')
+export class MasterTravelCompany {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 100 })
+  name: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  icon: string;
+
+  @Column({ default: true })
+  isActive: boolean;
+}
+
 export const ALL_ENTITIES = [
   Guest,
   StayProfile,
@@ -340,4 +392,7 @@ export const ALL_ENTITIES = [
   GroupMember,
   GuestEvent,
   MemoryReel,
+  MasterAtmosphere,
+  MasterCadence,
+  MasterTravelCompany,
 ];

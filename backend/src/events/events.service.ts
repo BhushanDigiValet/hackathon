@@ -20,4 +20,11 @@ export class EventsService {
     const event = this.eventsRepo.create({ guestId, type, title, body, link });
     return this.eventsRepo.save(event);
   }
+
+  async getEvents(guestId: number) {
+    return this.eventsRepo.find({
+      where: { guestId },
+      order: { createdAt: 'DESC' },
+    });
+  }
 }

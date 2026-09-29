@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { StayProfile } from '../entities';
+import {
+  StayProfile,
+  MasterAtmosphere,
+  MasterCadence,
+  MasterTravelCompany,
+} from '../entities';
 import { AiService } from '../ai/ai.service';
 import { EventsService } from '../events/events.service';
 
@@ -12,7 +17,30 @@ export class ProfileService {
     private readonly profileRepo: Repository<StayProfile>,
     private readonly aiService: AiService,
     private readonly eventsService: EventsService,
+    @InjectRepository(MasterAtmosphere)
+    private atmosphereRepo: Repository<MasterAtmosphere>,
+    @InjectRepository(MasterCadence)
+    private cadenceRepo: Repository<MasterCadence>,
+    @InjectRepository(MasterTravelCompany)
+    private travelCompanyRepo: Repository<MasterTravelCompany>,
   ) {}
+
+  async getOptions() {
+    return {
+      atmosphereAndMood: await this.atmosphereRepo.find({
+        where: { isActive: true },
+        order: { id: 'ASC' },
+      }),
+      itineraryCadence: await this.cadenceRepo.find({
+        where: { isActive: true },
+        order: { id: 'ASC' },
+      }),
+      travelCompany: await this.travelCompanyRepo.find({
+        where: { isActive: true },
+        order: { id: 'ASC' },
+      }),
+    };
+  }
 
   async getProfile(guestId: number) {
     let profile = await this.profileRepo.findOne({ where: { guestId } });
@@ -25,7 +53,9 @@ export class ProfileService {
 
   async updateProfile(guestId: number, patch: any) {
     const profile = await this.getProfile(guestId);
-    profile.preferences = { ...profile.preferences, ...patch };
+    // Support both { budgetTier: 1 } and { preferences: { budgetTier: 1 } } payloads
+    const actualPatch = patch.preferences ? patch.preferences : patch;
+    profile.preferences = { ...profile.preferences, ...actualPatch };
     await this.profileRepo.save(profile);
     return profile;
   }

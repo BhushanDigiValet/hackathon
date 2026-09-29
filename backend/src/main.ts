@@ -12,6 +12,9 @@ import {
   GroupMember,
   GuestEvent,
   MemoryReel,
+  MasterAtmosphere,
+  MasterCadence,
+  MasterTravelCompany,
 } from './entities';
 import { seedAll } from './seed/all';
 
@@ -31,6 +34,9 @@ async function bootstrap() {
   const groupMemberRepo = app.get(getRepositoryToken(GroupMember));
   const eventRepo = app.get(getRepositoryToken(GuestEvent));
   const memoryReelRepo = app.get(getRepositoryToken(MemoryReel));
+  const atmosphereRepo = app.get(getRepositoryToken(MasterAtmosphere));
+  const cadenceRepo = app.get(getRepositoryToken(MasterCadence));
+  const travelCompanyRepo = app.get(getRepositoryToken(MasterTravelCompany));
 
   await seedAll(
     guestRepo,
@@ -43,10 +49,13 @@ async function bootstrap() {
     groupMemberRepo,
     eventRepo,
     memoryReelRepo,
+    atmosphereRepo,
+    cadenceRepo,
+    travelCompanyRepo,
   );
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`Backend running on http://localhost:${port}/api`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`Backend running on http://0.0.0.0:${port}/api`);
 }
 bootstrap();

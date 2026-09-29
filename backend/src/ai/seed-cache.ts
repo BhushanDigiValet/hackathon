@@ -48,10 +48,15 @@ export function seedDemoCacheData() {
     budgetTier: 4,
     rawPrompt: heroPrompt,
   };
-  demoCache.set('extractProfile', { prompt: heroPrompt, selections: heroSelections }, heroProfile);
+  demoCache.set(
+    'extractProfile',
+    { prompt: heroPrompt, selections: heroSelections },
+    heroProfile,
+  );
 
   // Case 2 (couple)
-  const case2Prompt = 'Celebrating our anniversary. Romantic, a bit fancy, we sleep late.';
+  const case2Prompt =
+    'Celebrating our anniversary. Romantic, a bit fancy, we sleep late.';
   const case2Selections = { travelMode: 'couple' };
   const case2Profile = {
     mood: 'romantic',
@@ -80,10 +85,15 @@ export function seedDemoCacheData() {
     budgetTier: 4,
     rawPrompt: case2Prompt,
   };
-  demoCache.set('extractProfile', { prompt: case2Prompt, selections: case2Selections }, case2Profile);
+  demoCache.set(
+    'extractProfile',
+    { prompt: case2Prompt, selections: case2Selections },
+    case2Profile,
+  );
 
   // Case 3 (bachelor weekend)
-  const case3Prompt = 'Bachelor weekend with 4 friends, we want energy, golf and a big night out.';
+  const case3Prompt =
+    'Bachelor weekend with 4 friends, we want energy, golf and a big night out.';
   const case3Selections = { travelMode: 'friends', pace: 'packed' };
   const case3Profile = {
     mood: 'adventurous',
@@ -112,10 +122,15 @@ export function seedDemoCacheData() {
     budgetTier: 3,
     rawPrompt: case3Prompt,
   };
-  demoCache.set('extractProfile', { prompt: case3Prompt, selections: case3Selections }, case3Profile);
+  demoCache.set(
+    'extractProfile',
+    { prompt: case3Prompt, selections: case3Selections },
+    case3Profile,
+  );
 
   // Case 4 (work solo)
-  const case4Prompt = 'Traveling alone for work, one free evening, want good food and maybe meet people.';
+  const case4Prompt =
+    'Traveling alone for work, one free evening, want good food and maybe meet people.';
   const case4Selections = { travelMode: 'solo' };
   const case4Profile = {
     mood: 'social',
@@ -144,7 +159,11 @@ export function seedDemoCacheData() {
     budgetTier: 3,
     rawPrompt: case4Prompt,
   };
-  demoCache.set('extractProfile', { prompt: case4Prompt, selections: case4Selections }, case4Profile);
+  demoCache.set(
+    'extractProfile',
+    { prompt: case4Prompt, selections: case4Selections },
+    case4Profile,
+  );
 
   // Case 5 (rest)
   const case5Prompt = 'Just want to rest. Pool, room service, early night.';
@@ -176,7 +195,11 @@ export function seedDemoCacheData() {
     budgetTier: 2,
     rawPrompt: case5Prompt,
   };
-  demoCache.set('extractProfile', { prompt: case5Prompt, selections: case5Selections }, case5Profile);
+  demoCache.set(
+    'extractProfile',
+    { prompt: case5Prompt, selections: case5Selections },
+    case5Profile,
+  );
 
   // =========================================================================
   // 2. COMPOSE PLAN (Hero Case)
@@ -198,7 +221,8 @@ export function seedDemoCacheData() {
         endAt: '12:00',
         why: 'You mentioned needing to slow down after crazy months, and this heated river stone massage releases deep-seated tension.',
         upsellItemId: 15, // Champagne & Truffles Spa Upgrade
-        upsellReason: 'Enjoy champagne and hand-crafted truffles in the private relaxation lounge after your treatment.',
+        upsellReason:
+          'Enjoy champagne and hand-crafted truffles in the private relaxation lounge after your treatment.',
       },
       {
         catalogueItemId: 9, // Golden Hour Terrace Bar
@@ -212,7 +236,8 @@ export function seedDemoCacheData() {
         endAt: '21:30',
         why: 'Prime cuts and wood-fired delicacies in a secluded alcove cater to your desire for an indulgent, memorable meal.',
         upsellItemId: 27, // Private Balcony Dining Upgrade
-        upsellReason: 'Reserve a private candlelit balcony table overlooking the illuminated gardens for dinner.',
+        upsellReason:
+          'Reserve a private candlelit balcony table overlooking the illuminated gardens for dinner.',
       },
       {
         catalogueItemId: 22, // Midnight Jazz Sessions
@@ -238,14 +263,23 @@ export function seedDemoCacheData() {
     lockedIds,
   };
   const dataA = {
-    understood: 'You would like tonight to carry more social energy while keeping your daytime relaxation intact.',
+    understood:
+      'You would like tonight to carry more social energy while keeping your daytime relaxation intact.',
     changes: [
       'Late Night: Replaced Midnight Jazz with Velvet Room Club for high-energy social nightlife',
       'Kept: Golden Hour Terrace Bar (confirmed)',
     ],
     profilePatch: {
       weights: { nightlife: 0.85, energy: 0.7 },
-      tags: ['spa', 'wellness', 'fine_dining', 'sunset', 'social', 'nightlife', 'lively'],
+      tags: [
+        'spa',
+        'wellness',
+        'fine_dining',
+        'sunset',
+        'social',
+        'nightlife',
+        'lively',
+      ],
     },
     items: [
       {
@@ -278,7 +312,8 @@ export function seedDemoCacheData() {
     lockedIds,
   };
   const dataB = {
-    understood: 'You prefer to sleep in later, so we moved your morning activities to start after ten.',
+    understood:
+      'You prefer to sleep in later, so we moved your morning activities to start after ten.',
     changes: [
       'Morning: Moved Serenity Stone Massage to 10:30 so you wake naturally without rush',
       'Kept: Golden Hour Terrace Bar (confirmed)',
@@ -317,7 +352,8 @@ export function seedDemoCacheData() {
     lockedIds,
   };
   const dataC = {
-    understood: 'You would like a relaxed dinner atmosphere with a lighter bill instead of formal fine dining.',
+    understood:
+      'You would like a relaxed dinner atmosphere with a lighter bill instead of formal fine dining.',
     changes: [
       'Dinner: Ember & Oak → Vine Street Grill, casual wood-fired comfort food',
       'Kept: Golden Hour Terrace Bar (confirmed)',
@@ -357,7 +393,8 @@ export function seedDemoCacheData() {
     lockedIds,
   };
   const dataD = {
-    understood: 'You would like to inject more exhilaration and exploration into your stay.',
+    understood:
+      'You would like to inject more exhilaration and exploration into your stay.',
     changes: [
       'Afternoon: Added Helicopter Sunset Tour for scenic desert exploration',
       'Kept: Golden Hour Terrace Bar (confirmed)',
@@ -403,7 +440,8 @@ export function seedDemoCacheData() {
     lockedIds,
   };
   const dataE = {
-    understood: 'Your sunset reservation at Golden Hour Terrace Bar is already confirmed, so we kept it safely in place.',
+    understood:
+      'Your sunset reservation at Golden Hour Terrace Bar is already confirmed, so we kept it safely in place.',
     changes: [
       'Kept: Golden Hour Terrace Bar (confirmed reservation cannot be removed conversationally)',
     ],
@@ -482,7 +520,8 @@ export function seedDemoCacheData() {
         category: 'nightlife',
       },
     ],
-    closingLine: 'When you are ready to pause again, your sanctuary will be waiting.',
+    closingLine:
+      'When you are ready to pause again, your sanctuary will be waiting.',
   };
 
   demoCache.set('narrateMemory', memoryKey, memoryData);

@@ -6,6 +6,11 @@ import { guestId } from '../common/guest-id';
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
+  @Get('options')
+  async getOptions() {
+    return this.profileService.getOptions();
+  }
+
   @Get()
   async getProfile(@Req() req: any) {
     return this.profileService.getProfile(guestId(req));
