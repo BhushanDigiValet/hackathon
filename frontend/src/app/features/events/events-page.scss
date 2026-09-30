@@ -45,7 +45,39 @@
 
 .stamp {
   opacity: 0;
-  transition: opacity 200ms ease;
+  transform: scale(0.6);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+// The screen never scrolls, so on shorter phones the least important details
+// give way first and the card keeps its title, quote and host.
+@media (max-height: 800px) {
+  .events-screen .intro {
+    display: none;
+  }
+}
+
+@media (max-height: 720px) {
+  .stack-card .reasons {
+    display: none;
+  }
+}
+
+@media (max-height: 700px) {
+  .stack-card .tags {
+    display: none;
+  }
+}
+
+@media (max-height: 660px) {
+  .stack-card .quote {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
 }
 
 .pass-feedback {

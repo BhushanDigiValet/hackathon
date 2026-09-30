@@ -30,6 +30,8 @@ const SWIPE_THRESHOLD = 110;
 const FLICK_VELOCITY = 0.5;
 const FLICK_MIN_DISTANCE = 30;
 const EXIT_MS = 360;
+/** The ✓ / ✕ swipe indicators never become fully opaque, so the card shows through. */
+const STAMP_MAX_OPACITY = 0.9;
 const SNAP_MS = 450;
 const TOAST_MS = 3500;
 
@@ -232,19 +234,12 @@ export class EventsPage {
     this.drag = null;
   }
 
+  /** Escape closes the sheets. Joining and passing happen only by swiping the card. */
   protected onKeydown(event: KeyboardEvent): void {
-    if (this.matchSheet() || this.nudgeOpen()) {
-      if (event.key === 'Escape') {
-        this.matchSheet.set(null);
-        this.nudgeOpen.set(false);
-      }
-      return;
+    if (event.key === 'Escape') {
+      this.matchSheet.set(null);
+      this.nudgeOpen.set(false);
     }
-    // The target can be the Document itself, which has no closest().
-    const target = event.target;
-    if (target instanceof Element && target.closest('input, textarea, select, [contenteditable]')) return;
-    if (event.key === 'ArrowRight') this.swipe('join');
-    else if (event.key === 'ArrowLeft') this.swipe('pass');
   }
 
   // --- Swiping --------------------------------------------------------------
@@ -427,9 +422,12 @@ export class EventsPage {
     this.brokenAvatars.update((ids) => new Set(ids).add(itineraryId));
   }
 
-  private setStamp(card: HTMLElement, action: SwipeAction | null, opacity: number): void {
+  /** Shows the ✓ (join) or ✕ (pass) indicator for `progress` 0..1: it fades in and grows, staying translucent. */
+  private setStamp(card: HTMLElement, action: SwipeAction | null, progress: number): void {
     card.querySelectorAll<HTMLElement>('[data-stamp]').forEach((stamp) => {
-      stamp.style.opacity = stamp.dataset['stamp'] === action ? String(opacity) : '0';
+      const shown = stamp.dataset['stamp'] === action ? progress : 0;
+      stamp.style.opacity = String(shown * STAMP_MAX_OPACITY);
+      stamp.style.transform = `scale(${0.6 + 0.4 * shown})`;
     });
   }
 

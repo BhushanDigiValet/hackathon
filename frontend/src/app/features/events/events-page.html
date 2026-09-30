@@ -1,6 +1,9 @@
-<div class="flex flex-col w-full px-margin-mobile pb-space-lg select-none">
+<!-- Fills exactly the space between the header (4rem) and the bottom nav area (6rem): no page scroll -->
+<div
+  class="events-screen flex flex-col w-full px-margin-mobile pb-2 select-none overflow-hidden h-[calc(100dvh-10rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))]"
+>
   <!-- Context & privilege header -->
-  <div class="flex flex-col gap-space-xs mt-space-sm mb-space-md">
+  <div class="shrink-0 flex flex-col gap-space-xs mt-space-sm mb-space-md">
     <div class="flex items-center justify-between gap-2">
       <div class="inline-flex items-center gap-space-xs bg-surface-container-high px-3 py-1 rounded-full min-w-0">
         <span class="w-1.5 h-1.5 shrink-0 rounded-full bg-primary animate-pulse"></span>
@@ -17,14 +20,14 @@
     </div>
     <div class="flex flex-col mt-space-xs">
       <h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Guest &amp; Host Invitations</h1>
-      <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+      <p class="intro font-body-md text-body-md text-on-surface-variant leading-relaxed">
         Discreet gatherings curated by fellow patrons tonight. Swipe to review salon company and accept your place.
       </p>
     </div>
   </div>
 
   <!-- Card stack -->
-  <div #stack class="stack relative w-full aspect-[3/4.4] min-h-[520px] mb-space-lg">
+  <div #stack class="stack relative w-full flex-1 min-h-0">
     @switch (loadState()) {
       @case ('loading') {
         <div class="absolute inset-0 rounded-2xl bg-surface-container-low flex flex-col items-center justify-center gap-3 text-secondary">
@@ -49,7 +52,7 @@
       @default {
         @for (card of visibleCards(); track card.itineraryId; let i = $index) {
           <div
-            class="stack-card absolute inset-0 rounded-2xl bg-surface-container overflow-hidden flex flex-col justify-between touch-pan-y"
+            class="stack-card absolute inset-0 rounded-2xl bg-surface-container overflow-hidden flex flex-col justify-between touch-none"
             [class.cursor-grab]="i === 0"
             [class]="i === 0 ? 'shadow-[0_24px_48px_rgba(14,5,8,0.9)]' : 'shadow-2xl'"
             [attr.data-index]="i"
@@ -57,7 +60,7 @@
             [attr.inert]="i === 0 ? null : ''"
             [attr.aria-hidden]="i === 0 ? null : 'true'"
             [attr.role]="i === 0 ? 'group' : null"
-            [attr.aria-label]="i === 0 ? card.title + ', ' + card.matchPercent + '% match. Use the arrow keys or the buttons below to join or pass.' : null"
+            [attr.aria-label]="i === 0 ? card.title + ', ' + card.matchPercent + '% match. Swipe right to join or left to pass.' : null"
             (pointerdown)="i === 0 && onPointerDown($event)"
           >
             <!-- Ambient image background -->
@@ -68,20 +71,20 @@
             </div>
 
             @if (i === 0) {
-              <!-- JOIN / PASS stamps; opacity is driven from script while dragging -->
+              <!-- ✓ / ✕ swipe indicators (the old join/pass buttons, faded) where JOIN / PASS used to sit; opacity and scale follow the drag -->
               <div
                 aria-hidden="true"
                 data-stamp="join"
-                class="stamp absolute top-28 left-6 z-20 -rotate-12 px-4 py-1.5 rounded-lg border-2 border-confirmed text-confirmed bg-confirmed/10 font-title-lg text-title-lg uppercase tracking-[0.2em]"
+                class="stamp absolute top-28 left-6 z-20 w-14 h-14 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-[0_12px_32px_rgba(14,5,8,0.5)]"
               >
-                Join
+                <span class="material-symbols-outlined text-[30px] [font-variation-settings:'wght'_600]">check</span>
               </div>
               <div
                 aria-hidden="true"
                 data-stamp="pass"
-                class="stamp absolute top-28 right-6 z-20 rotate-12 px-4 py-1.5 rounded-lg border-2 border-declined text-declined bg-declined/10 font-title-lg text-title-lg uppercase tracking-[0.2em]"
+                class="stamp absolute top-28 right-6 z-20 w-14 h-14 rounded-full bg-surface-container-highest text-declined border-2 border-declined/60 flex items-center justify-center shadow-[0_12px_32px_rgba(14,5,8,0.5)]"
               >
-                Pass
+                <span class="material-symbols-outlined text-[30px] [font-variation-settings:'wght'_600]">close</span>
               </div>
             }
 
@@ -128,7 +131,7 @@
               <h2 class="font-headline-sm text-headline-sm text-on-surface leading-snug">{{ card.title }}</h2>
 
               @if (card.matchReasons.length) {
-                <div class="flex flex-col gap-1">
+                <div class="reasons flex flex-col gap-1">
                   @for (reason of card.matchReasons.slice(0, 2); track reason) {
                     <span class="inline-flex items-center gap-1.5 self-start max-w-full px-2.5 py-0.5 rounded-full border border-primary/25 bg-primary/10 text-primary font-label-sm text-label-sm">
                       <span class="material-symbols-outlined text-[13px] shrink-0">check</span>
@@ -139,7 +142,7 @@
               }
 
               <div class="p-3 rounded-lg bg-surface-container-low/95 shadow-inner flex flex-col gap-1">
-                <p class="font-body-md text-body-md text-on-surface italic leading-relaxed">“{{ card.inviteMessage }}”</p>
+                <p class="quote font-body-md text-body-md text-on-surface italic leading-relaxed">“{{ card.inviteMessage }}”</p>
                 <div class="flex items-center gap-2 pt-1 mt-1 min-w-0">
                   @if (card.host.imageUrl && !brokenAvatars().has(card.itineraryId)) {
                     <img
@@ -161,7 +164,7 @@
               </div>
 
               @if (card.tags.length) {
-                <div class="flex flex-wrap gap-1.5 pt-0.5">
+                <div class="tags flex flex-wrap gap-1.5 pt-0.5">
                   @for (tag of card.tags; track tag) {
                     <span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">{{ tag }}</span>
                   }
@@ -206,31 +209,9 @@
   </div>
 
   @if (active()) {
-    <div class="flex flex-col items-center gap-3 w-full">
-      <div class="flex items-center justify-center gap-8">
-        <button
-          type="button"
-          aria-label="Pass"
-          class="w-14 h-14 rounded-full bg-surface-container-high text-declined border border-declined/30 flex items-center justify-center shadow-lg hover:bg-surface-container-highest active:scale-95 transition-all disabled:opacity-50"
-          [disabled]="exiting() || joining()"
-          (click)="swipe('pass')"
-        >
-          <span class="material-symbols-outlined text-[28px]">close</span>
-        </button>
-        <button
-          type="button"
-          aria-label="Join"
-          class="w-14 h-14 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg hover:bg-primary-fixed active:scale-95 transition-all disabled:opacity-50"
-          [disabled]="exiting() || joining()"
-          (click)="swipe('join')"
-        >
-          <span class="material-symbols-outlined text-[28px]">check</span>
-        </button>
-      </div>
-      <p class="font-label-sm text-label-sm text-on-surface-variant/80 text-center tracking-wide">
-        Swipe left to pass • Swipe right to join
-      </p>
-    </div>
+    <p class="shrink-0 pt-3 font-label-sm text-label-sm text-on-surface-variant/80 text-center tracking-wide">
+      Swipe left to pass • Swipe right to join
+    </p>
   }
 </div>
 

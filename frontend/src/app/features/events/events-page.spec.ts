@@ -16,10 +16,23 @@ describe('EventsPage', () => {
   let controller: HttpTestingController;
   let el: HTMLElement;
 
-  const buttons = () => ({
-    pass: el.querySelector<HTMLButtonElement>('button[aria-label="Pass"]')!,
-    join: el.querySelector<HTMLButtonElement>('button[aria-label="Join"]')!,
-  });
+  /** Drags the top card like a finger: down, two moves, up. `dx` > 0 is to the right. */
+  const drag = (dx: number) => {
+    const card = el.querySelector<HTMLElement>('[data-index="0"]')!;
+    const Pointer = (globalThis.PointerEvent ?? MouseEvent) as typeof MouseEvent;
+    const fire = (type: string, x: number) => {
+      const event = new Pointer(type, { clientX: x, clientY: 300, bubbles: true, button: 0 });
+      Object.defineProperty(event, 'pointerId', { value: 1 });
+      card.dispatchEvent(event);
+    };
+    fire('pointerdown', 200);
+    fire('pointermove', 200 + dx / 2);
+    fire('pointermove', 200 + dx);
+    fire('pointerup', 200 + dx);
+    fixture.detectChanges();
+  };
+  const swipeRight = () => drag(200);
+  const swipeLeft = () => drag(-200);
   const nearYou = () => el.textContent!.match(/(\d+) near you/)?.[1];
   /** Runs the fly-off, the re-render and the frame after it that re-enables swiping. */
   const settle = async () => {
@@ -55,7 +68,7 @@ describe('EventsPage', () => {
 
   it('celebrates a join, then opens the itinerary once confirmed', async () => {
     expect(nearYou()).toBe('4');
-    buttons().join.click();
+    swipeRight();
     const swipe = controller.expectOne('/api/circles/swipe');
     expect(swipe.request.body).toEqual({ itineraryId: 1, action: 'join' });
 
@@ -64,7 +77,7 @@ describe('EventsPage', () => {
     expect(el.querySelector('app-join-celebration')?.textContent).toContain('Confirmed with Suite 1');
 
     // Only one gathering at a time: no further swipes while joining.
-    buttons().pass.click();
+    swipeLeft();
     controller.expectNone('/api/circles/swipe');
 
     swipe.flush({});
@@ -75,7 +88,7 @@ describe('EventsPage', () => {
   });
 
   it('puts the card back and explains when a join fails', async () => {
-    buttons().join.click();
+    swipeRight();
     controller.expectOne('/api/circles/swipe').flush(null, { status: 500, statusText: 'Server Error' });
     await settle();
     await settle();
@@ -84,7 +97,10 @@ describe('EventsPage', () => {
     expect(el.querySelector('app-join-celebration')).toBeNull();
     expect(el.textContent).toContain('We couldn’t confirm your place');
     expect(nearYou()).toBe('4');
-    expect(buttons().join.disabled).toBe(false);
+
+    // The guest can swipe again.
+    swipeRight();
+    controller.expectOne('/api/circles/swipe').flush({});
   });
 
   it('joins with a note from the Nudge tab', async () => {
@@ -115,7 +131,7 @@ describe('EventsPage', () => {
   });
 
   it('does not bring back a gathering that filled up (409)', async () => {
-    buttons().join.click();
+    swipeRight();
     controller.expectOne('/api/circles/swipe').flush(null, { status: 409, statusText: 'Conflict' });
     await settle();
     await settle();
@@ -124,9 +140,22 @@ describe('EventsPage', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
-  it('passes with the left arrow key and acknowledges it quietly', async () => {
+  it('only swipes decide: no buttons, arrow keys do nothing, a short drag snaps back', () => {
+    expect(el.querySelector('button[aria-label="Join"], button[aria-label="Pass"]')).toBeNull();
+    expect(el.textContent).toContain('Swipe left to pass • Swipe right to join');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
-    controller.expectOne('/api/circles/swipe').flush({});
+    drag(20); // below both the swipe threshold and the minimum flick distance
+    controller.expectNone('/api/circles/swipe');
+    expect(nearYou()).toBe('4');
+  });
+
+  it('passes on a left swipe and acknowledges it quietly', async () => {
+    swipeLeft();
+    const pass = controller.expectOne('/api/circles/swipe');
+    expect(pass.request.body).toEqual({ itineraryId: 1, action: 'pass' });
+    pass.flush({});
     fixture.detectChanges();
     expect(el.textContent).toContain('Not tonight');
     await settle();
@@ -136,10 +165,10 @@ describe('EventsPage', () => {
   });
 
   it('refills below three cards, appending only unseen ones', async () => {
-    buttons().pass.click();
+    swipeLeft();
     controller.expectOne('/api/circles/swipe').flush({});
     await settle();
-    buttons().pass.click();
+    swipeLeft();
     controller.expectOne('/api/circles/swipe').flush({});
     await settle(); // 2 left -> refill
 
@@ -151,7 +180,7 @@ describe('EventsPage', () => {
 
   it('shows the empty state with a start over link', async () => {
     for (let i = 0; i < 4; i++) {
-      buttons().pass.click();
+      swipeLeft();
       controller.expectOne('/api/circles/swipe').flush({});
       await settle();
       controller.match(feedUrl).forEach((req) => req.flush([]));
