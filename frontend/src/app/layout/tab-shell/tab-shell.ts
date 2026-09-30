@@ -13,6 +13,7 @@ import { filter, map } from 'rxjs';
 import { GuestSessionService } from '../../core/auth/guest-session.service';
 import { MOCK_BRAND_LOGO_URL } from '../../core/mocks/stay.mocks';
 import { Nudge } from '../../core/models/stay.models';
+import { GuestAccountService } from '../../core/services/guest-account.service';
 import { NudgeComposerService } from '../../core/services/nudge-composer.service';
 import { NudgesService } from '../../core/services/nudges.service';
 
@@ -37,6 +38,17 @@ export class TabShell {
   private readonly guestSession = inject(GuestSessionService);
 
   protected readonly session = this.guestSession.session;
+
+  // Header avatar + account menu, from GET /api/guests/:id (the stored login is the fallback).
+  private readonly account = inject(GuestAccountService).account;
+  /** The photo URL that failed to load, so we fall back to the icon for it. */
+  protected readonly avatarFailed = signal<string | null>(null);
+  protected readonly avatarUrl = computed(() => {
+    const url = this.account()?.profileImage;
+    return url && url !== this.avatarFailed() ? url : null;
+  });
+  protected readonly displayName = computed(() => this.account()?.name ?? this.session()?.name ?? '');
+  protected readonly displayEmail = computed(() => this.account()?.email ?? this.session()?.email ?? '');
   protected readonly menuOpen = signal(false);
   private readonly accountMenu = viewChild<ElementRef<HTMLElement>>('accountMenu');
 

@@ -1,3 +1,13 @@
+/** GET /api/guests/:id — the logged-in guest's account (an unknown id answers 200 with an empty body). */
+export interface GuestAccount {
+  id: number;
+  name: string;
+  email: string;
+  profileImage?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Shared guest context shown in headers across screens. */
 export interface GuestContext {
   suite: string;

@@ -97,23 +97,36 @@
       <div class="relative" #accountMenu>
         <button
           type="button"
-          aria-label="Account"
+          [attr.aria-label]="'Account' + (displayName() ? ', ' + displayName() : '')"
           aria-haspopup="menu"
           [attr.aria-expanded]="menuOpen()"
-          class="w-8 h-8 rounded-full bg-primary flex items-center justify-center hover:bg-primary-fixed transition-colors"
+          class="w-8 h-8 rounded-full bg-primary flex items-center justify-center overflow-hidden ring-2 ring-primary/60 hover:ring-primary transition-shadow"
           (click)="menuOpen.set(!menuOpen())"
         >
-          <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+          @if (avatarUrl(); as url) {
+            <img alt="" class="w-full h-full object-cover" [src]="url" (error)="avatarFailed.set(url)" />
+          } @else {
+            <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+          }
         </button>
         @if (menuOpen()) {
           <div
             role="menu"
-            class="absolute right-0 top-10 z-50 w-56 p-2 rounded-xl bg-surface-container-highest shadow-[0_16px_36px_-8px_rgba(10,3,6,0.65)] border border-primary/15"
+            class="absolute right-0 top-10 z-50 w-60 p-2 rounded-xl bg-surface-container-highest shadow-[0_16px_36px_-8px_rgba(10,3,6,0.65)] border border-primary/15"
           >
-            @if (session(); as s) {
-              <div class="px-3 py-2">
-                <p class="font-title-md text-title-md text-on-surface truncate">{{ s.name }}</p>
-                <p class="font-label-sm text-label-sm text-on-surface-variant truncate">{{ s.email }}</p>
+            @if (displayName()) {
+              <div class="flex items-center gap-3 px-3 py-2">
+                @if (avatarUrl(); as url) {
+                  <img alt="" class="w-10 h-10 shrink-0 rounded-full object-cover ring-2 ring-primary/40" [src]="url" />
+                } @else {
+                  <span class="w-10 h-10 shrink-0 rounded-full bg-primary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-on-primary text-[20px]">person</span>
+                  </span>
+                }
+                <div class="flex flex-col min-w-0">
+                  <p class="font-title-md text-title-md text-on-surface truncate">{{ displayName() }}</p>
+                  <p class="font-label-sm text-label-sm text-on-surface-variant truncate">{{ displayEmail() }}</p>
+                </div>
               </div>
             }
             <button
