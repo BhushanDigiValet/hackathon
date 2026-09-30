@@ -19,6 +19,7 @@ import { forkJoin, timer } from 'rxjs';
 import { CircleCard, NUDGE_MESSAGE_MAX, SwipeAction } from '../../core/models/stay.models';
 import { CirclesService } from '../../core/services/circles.service';
 import { NudgeComposerService } from '../../core/services/nudge-composer.service';
+import { SoundService } from '../../core/services/sound.service';
 import { PersonalizationService } from '../../core/services/personalization.service';
 import { CELEBRATION_MS, JoinCelebration } from './join-celebration/join-celebration';
 
@@ -64,6 +65,7 @@ export class EventsPage {
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly router = inject(Router);
+  private readonly sound = inject(SoundService);
 
   protected readonly guest = toSignal(inject(PersonalizationService).getGuest());
 
@@ -290,8 +292,12 @@ export class EventsPage {
       });
     }
 
-    if (action === 'join') this.join(card, message);
-    else this.pass(card);
+    if (action === 'join') {
+      this.sound.playJoin(); // still inside the swipe gesture, so browsers allow it
+      this.join(card, message);
+    } else {
+      this.pass(card);
+    }
 
     setTimeout(() => this.removeCard(card.itineraryId, action === 'pass'), this.ms(EXIT_MS));
   }

@@ -20,6 +20,14 @@ const ICON_ALIASES: Record<string, string> = {
   family: 'family_restroom',
 };
 
+/**
+ * Display labels for the travel company options, by id (the API's names are
+ * "Just me", "With my partner", "With friends", "With family"). Ids, icons and
+ * the values saved to the profile are unchanged.
+ */
+const TRAVEL_COMPANY_LABELS: Record<number, string> = { 1: 'Solo', 2: 'Duo', 3: 'Trio', 4: 'Group' };
+const SOLO_TRAVEL_COMPANY_ID = 1;
+
 @Injectable({ providedIn: 'root' })
 export class PersonalizationService {
   private readonly http = inject(HttpClient);
@@ -42,7 +50,12 @@ export class PersonalizationService {
           .map((o) => ({ id: o.id, label: o.name, description: o.description })),
         travelCompanies: dto.travelCompany
           .filter((o) => o.isActive)
-          .map((o) => ({ id: o.id, label: o.name, icon: ICON_ALIASES[o.icon] ?? o.icon })),
+          .map((o) => ({
+            id: o.id,
+            label: TRAVEL_COMPANY_LABELS[o.id] ?? o.name,
+            icon: ICON_ALIASES[o.icon] ?? o.icon,
+            solo: o.id === SOLO_TRAVEL_COMPANY_ID,
+          })),
       })),
     );
   }

@@ -5,6 +5,7 @@ import { Router, provideRouter } from '@angular/router';
 
 import { circleDto } from '../../core/services/circles.service.spec';
 import { NudgeComposerService } from '../../core/services/nudge-composer.service';
+import { SoundService } from '../../core/services/sound.service';
 import { EventsPage } from './events-page';
 import { CELEBRATION_MS } from './join-celebration/join-celebration';
 
@@ -85,6 +86,18 @@ describe('EventsPage', () => {
     vi.advanceTimersByTime(CELEBRATION_MS);
     expect(navigate).toHaveBeenCalledWith(['/itinerary']);
     controller.expectNone(feedUrl); // no refill when leaving
+  });
+
+  it('plays the chime on a join, but not on a pass', async () => {
+    const chime = vi.spyOn(TestBed.inject(SoundService), 'playJoin').mockImplementation(() => {});
+    swipeLeft();
+    controller.expectOne('/api/circles/swipe').flush({});
+    expect(chime).not.toHaveBeenCalled();
+    await settle();
+
+    swipeRight();
+    expect(chime).toHaveBeenCalledTimes(1);
+    controller.expectOne('/api/circles/swipe').flush({});
   });
 
   it('puts the card back and explains when a join fails', async () => {

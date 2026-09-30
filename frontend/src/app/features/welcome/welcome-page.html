@@ -89,33 +89,7 @@
         </div>
       </div>
 
-      <!-- Travel company -->
-      <div class="flex flex-col gap-3">
-        <span class="font-title-md text-title-md text-on-surface">Travel company</span>
-        <div class="grid grid-cols-2 gap-2" role="radiogroup">
-          @for (company of opts.travelCompanies; track company.id) {
-            @let active = travelCompanyId() === company.id;
-            <button
-              type="button"
-              role="radio"
-              [attr.aria-checked]="active"
-              class="p-3 rounded-lg text-left flex items-center justify-between transition-all"
-              [class]="active ? 'bg-surface-container-high text-on-surface shadow-sm' : 'bg-surface-container'"
-              (click)="travelCompanyId.set(company.id)"
-            >
-              <span class="font-body-md text-body-md" [class]="active ? 'text-primary font-medium' : 'text-secondary'">
-                {{ company.label }}
-              </span>
-              <span
-                class="material-symbols-outlined text-[18px]"
-                [class]="active ? 'text-primary icon-fill' : 'text-secondary'"
-              >{{ company.icon }}</span>
-            </button>
-          }
-        </div>
-      </div>
-
-      <!-- Guest circles -->
+      <!-- Guest circles (drives which travel company options are allowed below) -->
       <div class="p-4 rounded-lg bg-surface-container flex items-center justify-between shadow-sm">
         <div class="flex flex-col gap-1 pr-3">
           <span class="font-title-md text-title-md text-on-surface">Open to guest circles</span>
@@ -130,13 +104,50 @@
           [attr.aria-checked]="openToGuestCircles()"
           class="relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors duration-300 ease-in-out focus:outline-none"
           [class]="openToGuestCircles() ? 'bg-primary' : 'bg-surface-container-highest'"
-          (click)="openToGuestCircles.set(!openToGuestCircles())"
+          (click)="toggleGuestCircles()"
         >
           <span
             class="inline-block h-5 w-5 mt-1 rounded-full transform transition duration-300 ease-in-out"
             [class]="openToGuestCircles() ? 'translate-x-6 bg-surface-container-lowest' : 'translate-x-1 bg-secondary'"
           ></span>
         </button>
+      </div>
+
+      <!-- Travel company -->
+      <div class="flex flex-col gap-3">
+        <span class="font-title-md text-title-md text-on-surface">Travel company</span>
+        <div class="grid grid-cols-2 gap-2" role="radiogroup">
+          @for (company of opts.travelCompanies; track company.id) {
+            @let active = travelCompanyId() === company.id;
+            @let blocked = isCompanyBlocked(company);
+            <button
+              type="button"
+              role="radio"
+              [attr.aria-checked]="active"
+              [disabled]="blocked"
+              [attr.title]="blocked ? 'Not available while open to guest circles' : null"
+              class="p-3 rounded-lg text-left flex items-center justify-between transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              [class]="active ? 'bg-surface-container-high text-on-surface shadow-sm' : 'bg-surface-container'"
+              (click)="selectCompany(company)"
+            >
+              <span class="font-body-md text-body-md" [class]="active ? 'text-primary font-medium' : 'text-secondary'">
+                {{ company.label }}
+              </span>
+              <span
+                class="material-symbols-outlined text-[18px]"
+                [class]="active ? 'text-primary icon-fill' : 'text-secondary'"
+              >{{ company.icon }}</span>
+            </button>
+          }
+        </div>
+        @if (openToGuestCircles()) {
+          <p class="font-label-sm text-label-sm text-on-surface-variant">
+            Solo isn’t available while you’re open to guest circles.
+          </p>
+        }
+        @if (travelCompanyId() === null) {
+          <p class="font-label-sm text-label-sm text-primary">Choose who you’re travelling with to compose your stay.</p>
+        }
       </div>
 
       <!-- Refined preferences -->
@@ -232,7 +243,7 @@
         <button
           type="button"
           class="w-full py-4 px-6 rounded-lg bg-primary hover:bg-primary-fixed text-on-primary font-title-lg text-title-lg text-center transition-all duration-300 shadow-xl flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-80"
-          [disabled]="createState() === 'loading'"
+          [disabled]="createState() === 'loading' || (createState() === 'idle' && travelCompanyId() === null)"
           (click)="createStay()"
         >
           @switch (createState()) {

@@ -8,6 +8,7 @@ import {
   ProfileDto,
   RefinedPreference,
   SynthesisStep,
+  TravelCompanyOption,
 } from '../../core/models/stay.models';
 import { GuestSessionService } from '../../core/auth/guest-session.service';
 import { ItineraryService } from '../../core/services/itinerary.service';
@@ -80,8 +81,10 @@ export class WelcomePage {
           this.refinedPreferences.set(profile.refinedPreferences);
           this.selectedMoods.set(new Set(profile.moodIds));
           this.paceId.set(profile.paceId);
-          this.travelCompanyId.set(profile.travelCompanyId);
           this.openToGuestCircles.set(profile.openToGuestCircles);
+          // A saved Solo can't stand while open to guest circles; the guest picks again.
+          const company = options.travelCompanies.find((c) => c.id === profile.travelCompanyId);
+          this.travelCompanyId.set(company && !this.isCompanyBlocked(company) ? company.id : null);
           this.intention.set(profile.intention);
           this.loadState.set('loaded');
         },
@@ -98,6 +101,22 @@ export class WelcomePage {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+  }
+
+  /** Solo can't be picked while open to guest circles. */
+  protected isCompanyBlocked(company: TravelCompanyOption): boolean {
+    return company.solo && this.openToGuestCircles();
+  }
+
+  protected selectCompany(company: TravelCompanyOption): void {
+    if (!this.isCompanyBlocked(company)) this.travelCompanyId.set(company.id);
+  }
+
+  /** Turning guest circles on clears a Solo selection, since Solo isn't allowed then. */
+  protected toggleGuestCircles(): void {
+    this.openToGuestCircles.update((open) => !open);
+    const selected = this.options()?.travelCompanies.find((c) => c.id === this.travelCompanyId());
+    if (selected && this.isCompanyBlocked(selected)) this.travelCompanyId.set(null);
   }
 
   protected signOut(): void {

@@ -29,6 +29,8 @@ export interface PaceOption extends SelectableOption {
 
 export interface TravelCompanyOption extends SelectableOption {
   icon: string;
+  /** Travelling alone; not allowed while the guest is open to guest circles. */
+  solo: boolean;
 }
 
 export interface RefinedPreference {
